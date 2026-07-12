@@ -1,4 +1,7 @@
-const BASE = '/api';
+const BASE = import.meta.env.PROD
+  ? 'https://jaldikharido-1.onrender.com/api' // Your live Render backend URL + /api
+  : '/api'; // Local fallback
+
 
 export const apiFetch = async (endpoint, options = {}) => {
   const token = localStorage.getItem('jk_token');
