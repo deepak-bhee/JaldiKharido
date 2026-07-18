@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
@@ -15,6 +15,37 @@ const Login = () => {
   const location = useLocation();
 
   const from = location.state?.from?.pathname || '/';
+
+  const handleGoogleLoginResponse = async (response) => {
+    setLoading(true);
+    try {
+      const data = await apiFetch('/auth/google', {
+        method: 'POST',
+        body: JSON.stringify({ token: response.credential })
+      });
+      login(data.user, data.token);
+      showToast(`Welcome back, ${data.user.name.split(' ')[0]}! 🎉`, 'success');
+      navigate(from, { replace: true });
+    } catch (err) {
+      showToast(err.message, 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    /* global google */
+    if (typeof google !== 'undefined') {
+      google.accounts.id.initialize({
+        client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID || '708688753235-dummyclientid.apps.googleusercontent.com',
+        callback: handleGoogleLoginResponse
+      });
+      google.accounts.id.renderButton(
+        document.getElementById("google-signin-btn"),
+        { theme: "outline", size: "large", width: "100%", text: "continue_with" }
+      );
+    }
+  }, [isLogin]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -140,6 +171,16 @@ const Login = () => {
                 </span>
               ) : isLogin ? 'Sign In' : 'Create Account'}
             </button>
+
+            <div className="relative flex py-2 items-center">
+              <div className="flex-grow border-t border-white/10"></div>
+              <span className="flex-shrink mx-4 text-slate-500 text-xs uppercase tracking-wider">or</span>
+              <div className="flex-grow border-t border-white/10"></div>
+            </div>
+
+            <div className="w-full flex justify-center mt-1">
+              <div id="google-signin-btn" className="w-full min-h-[44px]" />
+            </div>
           </form>
         </div>
       </div>

@@ -78,6 +78,53 @@ const getMe = async (req, res) => {
   }
 };
 
+// @desc    Google Sign-In / Sign-Up
+// @route   POST /api/auth/google
+// @access  Public
+const googleLogin = async (req, res) => {
+  try {
+    const { token } = req.body;
+    if (!token) {
+      return res.status(400).json({ success: false, message: 'Google token required' });
+    }
+
+    // Verify token with Google's tokeninfo API
+    const response = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${token}`);
+    if (!response.ok) {
+      return res.status(400).json({ success: false, message: 'Invalid Google token' });
+    }
+
+    const payload = await response.json();
+    const { email, name } = payload;
+    if (!email) {
+      return res.status(400).json({ success: false, message: 'Email address not provided by Google' });
+    }
+
+    let user = await User.findOne({ email });
+    if (!user) {
+      // Create new user (Google signup) with a random password
+      const randomPassword = Math.random().toString(36).slice(-10) + 'A1!';
+      user = await User.create({
+        name,
+        email,
+        password: randomPassword,
+        role: 'user'
+      });
+      console.log(`🆕 Created new user via Google signup: ${name} (${email})`);
+    }
+
+    const localToken = generateToken(user._id);
+
+    res.json({
+      success: true,
+      token: localToken,
+      user: { id: user._id, name: user.name, email: user.email, role: user.role }
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 // @desc    Seed demo data (products + admin) — always refreshes products
 // @route   POST /api/auth/seed
 // @access  Public
@@ -371,4 +418,4 @@ const seed = async (req, res) => {
   }
 };
 
-module.exports = { register, login, getMe, seed };
+module.exports = { register, login, googleLogin, getMe, seed };
