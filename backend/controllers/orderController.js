@@ -95,6 +95,11 @@ const placeOrder = async (req, res) => {
     sendEmailNotification(populatedOrder.user?.email, emailSubject, emailText, emailHtml);
     sendSmsNotification(shippingAddress.phone, smsText);
 
+    // Send admin notification to you (the store owner)
+    const adminSubject = `🚨 New Order Received - #${order._id.toString().substring(0, 8)}`;
+    const adminText = `A new order has been placed on JaldiKharidoo!\n\nOrder ID: #${order._id}\nCustomer: ${populatedOrder.user?.name} (${populatedOrder.user?.email})\nTotal Amount: ₹${totalAmount}\nPayment Method: ${paymentMethod || 'COD'}.\n\nView details in the admin dashboard: https://jaldi-kharido.vercel.app/admin`;
+    sendEmailNotification(process.env.SMTP_USER, adminSubject, adminText);
+
     res.status(201).json({ success: true, order: populatedOrder });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
