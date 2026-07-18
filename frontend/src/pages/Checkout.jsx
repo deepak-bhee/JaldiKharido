@@ -6,7 +6,7 @@ import { apiFetch, formatPrice } from '../api';
 
 const Checkout = () => {
   const { items, cartTotal, clearCart } = useCart();
-  const { showToast } = useToast();
+  const { showToast, showSmsNotification } = useToast();
   const navigate = useNavigate();
 
   const [loading, setLoading] = useState(false);
@@ -29,6 +29,10 @@ const Checkout = () => {
       });
       clearCart();
       showToast('Order placed successfully! 🎉', 'success');
+      showSmsNotification(
+        address.phone,
+        `JaldiKharidoo: Your order of ${items.length} items has been placed successfully! Total: ${formatPrice(cartTotal)}. Method: ${paymentMethod || 'COD'}. Track here: https://jaldi-kharido.vercel.app/orders`
+      );
       navigate('/orders');
     } catch (err) {
       showToast(err.message, 'error');

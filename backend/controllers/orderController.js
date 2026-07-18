@@ -52,6 +52,18 @@ const placeOrder = async (req, res) => {
       totalAmount
     });
 
+    // Simulate SMS notification sendout to the order phone number
+    console.log(`
+┌────────────────────────────────────────────────────────┐
+│  ✉️  SMS NOTIFICATION SENT                             │
+├────────────────────────────────────────────────────────┤
+│  To: ${shippingAddress.phone}
+│  Message: JaldiKharidoo: Your order #${order._id.toString().substring(0, 8)} has
+│  been placed successfully! Total: ₹${totalAmount} via ${paymentMethod || 'COD'}.
+│  Track here: https://jaldi-kharido.vercel.app/orders
+└────────────────────────────────────────────────────────┘
+    `);
+
     const populatedOrder = await Order.findById(order._id).populate('user', 'name email');
     res.status(201).json({ success: true, order: populatedOrder });
   } catch (error) {
