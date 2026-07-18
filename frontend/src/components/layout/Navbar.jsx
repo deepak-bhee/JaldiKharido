@@ -216,7 +216,7 @@ const Navbar = () => {
       <div className={`fixed top-0 left-0 right-0 z-[1000] transition-all duration-500 cubic-bezier(0.16, 1, 0.3, 1)
         ${scrolled ? 'p-3' : 'p-0'}`}
       >
-        <nav className={`w-full mx-auto transition-all duration-500 cubic-bezier(0.16, 1, 0.3, 1)
+        <nav className={`relative w-full mx-auto transition-all duration-500 cubic-bezier(0.16, 1, 0.3, 1)
           ${scrolled
             ? 'max-w-6xl bg-surface/85 backdrop-blur-md border border-white/10 rounded-2xl shadow-[0_12px_40px_rgba(0,0,0,0.6)] px-4 sm:px-6'
             : 'max-w-7xl bg-transparent border-b border-white/[0.06] rounded-none px-4 sm:px-6 lg:px-8'}`}
