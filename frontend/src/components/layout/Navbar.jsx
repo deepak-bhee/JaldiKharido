@@ -124,7 +124,6 @@ const Navbar = () => {
   const renderSuggestions = () => {
     if (!showSuggestions) return null;
 
-    // 1. Show Search History if query is empty
     if (!searchQuery.trim() && searchHistory.length > 0) {
       return (
         <div className="absolute top-full left-0 right-0 mt-2 glass border border-white/10 rounded-2xl overflow-hidden shadow-2xl z-[999] p-3 animate-fade text-left">
@@ -170,7 +169,6 @@ const Navbar = () => {
       );
     }
 
-    // 2. Show autocomplete results if typing
     if (searchQuery.trim()) {
       if (suggestions.length > 0) {
         return (
@@ -212,14 +210,18 @@ const Navbar = () => {
 
   return (
     <>
-      {/* Navbar has z-[1000] to sit cleanly on top of search/menu backdrop overlays */}
-      <nav className={`fixed top-0 left-0 right-0 z-[1000] transition-all duration-300
-        ${scrolled
-          ? 'bg-surface/95 backdrop-blur-xl border-b border-white/[0.06] shadow-lg'
-          : 'bg-transparent'}`}
+      {/* Outer Floating Wrapper Container */}
+      <div className={`fixed top-0 left-0 right-0 z-[1000] transition-all duration-500 cubic-bezier(0.16, 1, 0.3, 1)
+        ${scrolled ? 'p-3' : 'p-0'}`}
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16 gap-4">
+        <nav className={`w-full mx-auto transition-all duration-500 cubic-bezier(0.16, 1, 0.3, 1)
+          ${scrolled
+            ? 'max-w-6xl bg-surface/85 backdrop-blur-md border border-white/10 rounded-2xl shadow-[0_12px_40px_rgba(0,0,0,0.6)] px-4 sm:px-6'
+            : 'max-w-7xl bg-transparent border-b border-white/[0.06] rounded-none px-4 sm:px-6 lg:px-8'}`}
+        >
+          <div className={`flex items-center justify-between gap-4 transition-all duration-500 cubic-bezier(0.16, 1, 0.3, 1)
+            ${scrolled ? 'h-14' : 'h-20'}`}
+          >
             
             {/* Brand */}
             <Link to="/" className="flex items-center gap-2 group flex-shrink-0">
@@ -371,40 +373,41 @@ const Navbar = () => {
               {renderSuggestions()}
             </div>
           )}
-        </div>
 
-        {/* Mobile drawer (No search inside here anymore!) */}
-        <div className={`md:hidden nav-drawer ${open ? 'open' : 'closed'}
-          absolute top-16 left-0 right-0 bg-surface/98 backdrop-blur-xl border-b border-white/[0.06]`}>
-          <div className="px-4 pt-2 pb-4 flex flex-col gap-1">
-            {isAdmin() ? (
-              <MobileLink to="/admin" label="⚙️ Admin Dashboard" active={location.pathname === '/admin'} />
-            ) : (
-              <>
-                <MobileLink to="/"        label="🏠 Home"      active={location.pathname === '/'} />
-                <MobileLink to="/catalog" label="🛍️ Shop"      active={location.pathname === '/catalog'} />
-                {isLoggedIn() && <MobileLink to="/orders" label="📦 My Orders" active={location.pathname === '/orders'} />}
-              </>
-            )}
-            
-            <div className="border-t border-white/[0.06] mt-2 pt-3">
-              {isLoggedIn() ? (
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-slate-400">👤 {user?.name}</span>
-                  <button onClick={handleLogout}
-                    className="text-sm text-red-400 border border-red-500/30 px-3 py-1 rounded-lg">
-                    Logout
-                  </button>
-                </div>
+          {/* Mobile drawer floating under the capsule wrapper */}
+          <div className={`md:hidden nav-drawer ${open ? 'open' : 'closed'}
+            absolute top-full left-0 right-0 mt-2 bg-surface/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl overflow-hidden`}
+          >
+            <div className="px-4 pt-3 pb-4 flex flex-col gap-1">
+              {isAdmin() ? (
+                <MobileLink to="/admin" label="⚙️ Admin Dashboard" active={location.pathname === '/admin'} />
               ) : (
-                <Link to="/login" className="block w-full text-center py-2.5 bg-gradient-btn text-white font-semibold rounded-lg">
-                  Sign In
-                </Link>
+                <>
+                  <MobileLink to="/"        label="🏠 Home"      active={location.pathname === '/'} />
+                  <MobileLink to="/catalog" label="🛍️ Shop"      active={location.pathname === '/catalog'} />
+                  {isLoggedIn() && <MobileLink to="/orders" label="📦 My Orders" active={location.pathname === '/orders'} />}
+                </>
               )}
+              
+              <div className="border-t border-white/[0.06] mt-2 pt-3">
+                {isLoggedIn() ? (
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-slate-400">👤 {user?.name}</span>
+                    <button onClick={handleLogout}
+                      className="text-sm text-red-400 border border-red-500/30 px-3 py-1 rounded-lg">
+                      Logout
+                    </button>
+                  </div>
+                ) : (
+                  <Link to="/login" className="block w-full text-center py-2.5 bg-gradient-btn text-white font-semibold rounded-lg">
+                    Sign In
+                  </Link>
+                )}
+              </div>
             </div>
           </div>
-        </div>
-      </nav>
+        </nav>
+      </div>
 
       {/* Blurred Backdrop Overlays */}
       
@@ -424,8 +427,8 @@ const Navbar = () => {
         />
       )}
 
-      {/* Spacer - Dynamically increases space on mobile to prevent sub-header search overlap ONLY on Homepage */}
-      <div className={`transition-all duration-300 ${(!isAdmin() && isHomepage) ? 'h-28 md:h-16' : 'h-16'}`} />
+      {/* Spacer - Dynamically offsets navbar heights (increased from h-16/28 to h-20/32 to account for taller unscrolled navbar) */}
+      <div className={`transition-all duration-500 ${(!isAdmin() && isHomepage) ? 'h-32 md:h-20' : 'h-20'}`} />
     </>
   );
 };
