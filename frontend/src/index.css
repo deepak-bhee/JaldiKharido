@@ -171,3 +171,15 @@ canvas.absolute { pointer-events: none; }
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+/* ── Custom Cursor Hiding (Desktop only) ─────────────────── */
+@media (any-hover: hover) and (any-pointer: fine) {
+  * {
+    cursor: none !important;
+  }
+  
+  input, textarea, select {
+    cursor: text !important;
+  }
+}
+
