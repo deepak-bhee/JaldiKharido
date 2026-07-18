@@ -3,6 +3,8 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
 import { apiFetch, formatPrice } from '../../api';
+import { AnimatedThemeToggler } from '../AnimatedThemeToggler';
+
 
 const Navbar = () => {
   const { user, isLoggedIn, isAdmin, logout } = useAuth();
@@ -275,6 +277,7 @@ const Navbar = () => {
 
             {/* Desktop right actions */}
             <div className="hidden md:flex items-center gap-3 flex-shrink-0">
+              <AnimatedThemeToggler />
               {!isAdmin() && (
                 <Link
                   to="/cart"
@@ -319,6 +322,7 @@ const Navbar = () => {
 
             {/* Mobile: cart + hamburger */}
             <div className="flex md:hidden items-center gap-2 flex-shrink-0">
+              <AnimatedThemeToggler />
               {!isAdmin() && (
                 <Link to="/cart" className="relative p-2 text-slate-400 hover:text-white">
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

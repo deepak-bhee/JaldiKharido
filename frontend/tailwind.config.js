@@ -16,10 +16,15 @@ export default {
         },
         gold:    '#fbbf24',
         surface: {
-          DEFAULT:   '#04060e',
-          secondary: '#080d1a',
-          card:      'rgba(255,255,255,0.04)',
+          DEFAULT:   'var(--bg-surface)',
+          secondary: 'var(--bg-surface-secondary)',
+          card:      'var(--glass-bg)',
         },
+        white: 'rgb(var(--text-white) / <alpha-value>)',
+        slate: {
+          300: 'rgb(var(--text-slate-300) / <alpha-value>)',
+          400: 'rgb(var(--text-slate-400) / <alpha-value>)',
+        }
       },
       fontFamily: {
         sans:    ['Inter', 'system-ui', 'sans-serif'],

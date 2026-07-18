@@ -2,9 +2,28 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ── Theme variables ──────────────────────────────── */
+:root {
+  --bg-surface: #04060e;
+  --bg-surface-secondary: #080d1a;
+  --text-white: 255 255 255;
+  --text-slate-300: 203 213 225;
+  --text-slate-400: 148 163 184;
+  --glass-bg: rgba(255, 255, 255, 0.04);
+}
+
+html:not(.dark) {
+  --bg-surface: #ffffff;
+  --bg-surface-secondary: #f8fafc;
+  --text-white: 15 23 42;
+  --text-slate-300: 51 65 85;
+  --text-slate-400: 71 85 105;
+  --glass-bg: rgba(0, 0, 0, 0.03);
+}
+
 /* ── Custom scrollbar ──────────────────────────────── */
 ::-webkit-scrollbar { width: 5px; }
-::-webkit-scrollbar-track { background: #080d1a; }
+::-webkit-scrollbar-track { background: var(--bg-surface-secondary); }
 ::-webkit-scrollbar-thumb {
   background: linear-gradient(180deg, #f97316, #6366f1);
   border-radius: 9999px;
@@ -12,8 +31,8 @@
 
 /* ── Base body ─────────────────────────────────────── */
 body {
-  background-color: #04060e;
-  color: #f8fafc;
+  background-color: var(--bg-surface);
+  color: rgb(var(--text-white));
   font-family: 'Inter', system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
@@ -182,4 +201,17 @@ canvas.absolute { pointer-events: none; }
     cursor: text !important;
   }
 }
+
+/* ── View Transitions (Theme Toggler) ───────────────────── */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+/* Scoped to AnimatedThemeToggler */
+html[data-magicui-theme-vt="active"]::view-transition-group(root) {
+  animation-duration: var(--magicui-theme-toggle-vt-duration);
+}
+
 
