@@ -6,7 +6,6 @@ import { ProtectedRoute, AdminRoute } from './components/ProtectedRoute';
 
 import Navbar from './components/layout/Navbar';
 import Footer from './components/layout/Footer';
-import { SmoothCursor } from './components/SmoothCursor';
 
 import Home from './pages/Home';
 import Catalog from './pages/Catalog';
@@ -24,8 +23,8 @@ const App = () => {
         <CartProvider>
           <ToastProvider>
             <div className="flex flex-col min-h-screen">
-              <SmoothCursor />
               <Navbar />
+
 
               <main className="flex-1">
                 <Routes>

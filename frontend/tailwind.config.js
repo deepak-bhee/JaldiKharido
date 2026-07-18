@@ -34,7 +34,7 @@ export default {
         'gradient-brand': 'linear-gradient(135deg,#f97316,#f59e0b,#ec4899)',
         'gradient-btn':   'linear-gradient(135deg,#f97316,#ea580c)',
         'gradient-accent':'linear-gradient(135deg,#6366f1,#4f46e5)',
-        'gradient-hero':  'linear-gradient(135deg,#04060e 0%,#080d1a 50%,#060b16 100%)',
+        'gradient-hero':  'var(--bg-gradient-hero)',
       },
       boxShadow: {
         glow:       '0 0 40px rgba(249,115,22,0.25)',

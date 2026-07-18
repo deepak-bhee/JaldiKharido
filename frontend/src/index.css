@@ -10,6 +10,8 @@
   --text-slate-300: 203 213 225;
   --text-slate-400: 148 163 184;
   --glass-bg: rgba(255, 255, 255, 0.04);
+  --bg-gradient-hero: linear-gradient(135deg, #04060e 0%, #080d1a 50%, #060b16 100%);
+  --grid-line: rgba(255, 255, 255, 0.025);
 }
 
 html:not(.dark) {
@@ -19,6 +21,8 @@ html:not(.dark) {
   --text-slate-300: 51 65 85;
   --text-slate-400: 71 85 105;
   --glass-bg: rgba(0, 0, 0, 0.03);
+  --bg-gradient-hero: linear-gradient(135deg, #ffffff 0%, #f1f5f9 50%, #e2e8f0 100%);
+  --grid-line: rgba(0, 0, 0, 0.04);
 }
 
 /* ── Custom scrollbar ──────────────────────────────── */
@@ -48,22 +52,22 @@ body {
 
 /* ── Glassmorphism ─────────────────────────────────── */
 .glass {
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.07);
+  background: rgba(var(--text-white), 0.04);
+  border: 1px solid rgba(var(--text-white), 0.07);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
 }
 
 .glass-hover:hover {
-  background: rgba(255, 255, 255, 0.07);
+  background: rgba(var(--text-white), 0.07);
   border-color: rgba(249, 115, 22, 0.25);
 }
 
 /* ── Hero grid overlay ─────────────────────────────── */
 .hero-grid {
   background-image:
-    linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+    linear-gradient(var(--grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
   background-size: 60px 60px;
   mask-image: radial-gradient(ellipse 90% 90% at 50% 50%, black 0%, transparent 100%);
 }
@@ -191,16 +195,6 @@ canvas.absolute { pointer-events: none; }
   scrollbar-width: none;
 }
 
-/* ── Custom Cursor Hiding (Desktop only) ─────────────────── */
-@media (any-hover: hover) and (any-pointer: fine) {
-  * {
-    cursor: none !important;
-  }
-  
-  input, textarea, select {
-    cursor: text !important;
-  }
-}
 
 /* ── View Transitions (Theme Toggler) ───────────────────── */
 ::view-transition-old(root),
