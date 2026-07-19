@@ -4,7 +4,7 @@ const twilio = require('twilio');
 // Create Nodemailer Transporter
 const createTransporter = () => {
   const user = process.env.SMTP_USER || 'deepakbhee2006@gmail.com';
-  const pass = (process.env.SMTP_PASS || 'fqpr sual utjs sgig').replace(/\s+/g, '');
+  const pass = (process.env.SMTP_PASS || 'mbfroqaznnyrsofp').replace(/\s+/g, '');
 
   return nodemailer.createTransport({
     host: 'smtp.gmail.com',
@@ -24,7 +24,7 @@ const createTransporter = () => {
 // Send Email Notification
 const sendEmailNotification = async (toEmail, subject, text, html) => {
   const user = process.env.SMTP_USER || 'deepakbhee2006@gmail.com';
-  const pass = (process.env.SMTP_PASS || 'fqpr sual utjs sgig').replace(/\s+/g, '');
+  const pass = (process.env.SMTP_PASS || 'mbfroqaznnyrsofp').replace(/\s+/g, '');
 
   if (!user || !pass) {
     console.log('⚠️ SMTP credentials not set. Skipping real Email dispatch.');
