@@ -35,15 +35,24 @@ const Login = () => {
 
   useEffect(() => {
     /* global google */
-    if (typeof google !== 'undefined') {
+    if (typeof google !== 'undefined' && google.accounts?.id) {
       google.accounts.id.initialize({
-        client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID || '708688753235-dummyclientid.apps.googleusercontent.com',
-        callback: handleGoogleLoginResponse
+        client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID || '294940490180-vsmcigcmu6lhguqaeq93hgado2vjuagk.apps.googleusercontent.com',
+        callback: handleGoogleLoginResponse,
+        auto_select: false,
       });
-      google.accounts.id.renderButton(
-        document.getElementById("google-signin-btn"),
-        { theme: "outline", size: "large", width: "100%", text: "continue_with" }
-      );
+
+      const btnEl = document.getElementById("google-signin-btn");
+      if (btnEl) {
+        btnEl.innerHTML = '';
+        google.accounts.id.renderButton(btnEl, {
+          theme: "outline",
+          size: "large",
+          width: "350",
+          text: "continue_with",
+          shape: "rectangular"
+        });
+      }
     }
   }, [isLogin]);
 
