@@ -95,8 +95,6 @@ const placeOrder = async (req, res) => {
     const adminEmail = process.env.SMTP_USER || 'deepakbhee2006@gmail.com';
     const customerEmail = populatedOrder.user?.email || req.user?.email;
 
-    const timeout = (ms) => new Promise(resolve => setTimeout(resolve, ms));
-
     const dispatchTask = async () => {
       try {
         if (customerEmail) {
@@ -111,8 +109,8 @@ const placeOrder = async (req, res) => {
       }
     };
 
-    // Execute dispatch on cloud worker, capped at 3s max wait time
-    await Promise.race([dispatchTask(), timeout(3000)]);
+    // Await email delivery completion before returning HTTP response
+    await dispatchTask();
 
     res.status(201).json({ success: true, order: populatedOrder });
   } catch (error) {

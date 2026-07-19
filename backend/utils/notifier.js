@@ -10,6 +10,7 @@ const createTransporter = () => {
     host: 'smtp.gmail.com',
     port: 465,
     secure: true,
+    pool: false, // Prevents socket reuse drops from Gmail
     auth: {
       user: user,
       pass: pass,
@@ -38,7 +39,7 @@ const sendEmailNotification = async (toEmail, subject, text, html) => {
   try {
     const transporter = createTransporter();
     const mailOptions = {
-      from: `"JaldiKharidoo Store" <${user}>`,
+      from: user,
       to: toEmail,
       subject,
       text,
