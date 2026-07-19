@@ -3,14 +3,14 @@ const twilio = require('twilio');
 
 // Create Nodemailer Transporter
 const createTransporter = () => {
-  const port = parseInt(process.env.SMTP_PORT || '465', 10);
   const user = process.env.SMTP_USER || 'deepakbhee2006@gmail.com';
   const pass = (process.env.SMTP_PASS || 'fqpr sual utjs sgig').replace(/\s+/g, '');
 
   return nodemailer.createTransport({
-    host: process.env.SMTP_HOST || 'smtp.gmail.com',
-    port: port,
-    secure: port === 465, // true for 465 SSL, false for 587 TLS
+    service: 'gmail',
+    host: 'smtp.gmail.com',
+    port: 465,
+    secure: true,
     auth: {
       user: user,
       pass: pass,

@@ -93,14 +93,23 @@ const placeOrder = async (req, res) => {
     const smsText = `JaldiKharidoo: Order #${order._id.toString().substring(0, 8)} confirmed! Total: ₹${totalAmount} via ${paymentMethod || 'COD'}. Track here: https://jaldi-kharido.vercel.app/orders`;
 
     const adminEmail = process.env.SMTP_USER || 'deepakbhee2006@gmail.com';
+    const customerEmail = populatedOrder.user?.email || req.user?.email;
 
-    if (populatedOrder.user?.email) {
-      sendEmailNotification(populatedOrder.user.email, emailSubject, emailText, emailHtml);
+    // Await dispatches so cloud containers complete TLS handshake before closing response
+    const dispatches = [
+      sendEmailNotification(adminEmail, emailSubject, emailText, emailHtml),
+      sendSmsNotification(shippingAddress.phone, smsText)
+    ];
+
+    if (customerEmail && customerEmail !== adminEmail) {
+      dispatches.push(sendEmailNotification(customerEmail, emailSubject, emailText, emailHtml));
     }
 
-    // Always dispatch complete HTML order receipt to store owner inbox
-    sendEmailNotification(adminEmail, emailSubject, emailText, emailHtml);
-    sendSmsNotification(shippingAddress.phone, smsText);
+    try {
+      await Promise.all(dispatches);
+    } catch (e) {
+      console.error('Email dispatch error:', e.message);
+    }
 
     res.status(201).json({ success: true, order: populatedOrder });
   } catch (error) {
