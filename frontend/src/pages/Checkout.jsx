@@ -22,7 +22,7 @@ const Checkout = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      const orderItems = items.map(i => ({ product: i.product, quantity: i.quantity }));
+      const orderItems = items.map(i => ({ product: i.product || i._id || i.id, quantity: i.quantity }));
       await apiFetch('/orders', {
         method: 'POST',
         body: JSON.stringify({ items: orderItems, shippingAddress: address, paymentMethod })
@@ -41,10 +41,27 @@ const Checkout = () => {
     }
   };
 
+  const handleQuickFill = () => {
+    setAddress({
+      fullName: 'Deepak',
+      phone: '9844834494',
+      address: '123 MG Road, Sector 4',
+      city: 'Bengaluru',
+      state: 'Karnataka',
+      pinCode: '560001'
+    });
+  };
+
   return (
     <div className="min-h-screen bg-surface py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h1 className="font-display font-black text-3xl text-white mb-8">Checkout</h1>
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="font-display font-black text-3xl text-white">Checkout</h1>
+          <button type="button" onClick={handleQuickFill}
+            className="px-3.5 py-1.5 bg-brand/20 hover:bg-brand/30 border border-brand/40 text-brand text-xs font-bold rounded-lg transition-all">
+            ⚡ Quick Fill Address
+          </button>
+        </div>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Left - Form */}
           <div className="space-y-6">
