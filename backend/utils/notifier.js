@@ -4,14 +4,15 @@ const twilio = require('twilio');
 // Create Nodemailer Transporter
 const createTransporter = () => {
   const port = parseInt(process.env.SMTP_PORT || '465', 10);
-  const pass = (process.env.SMTP_PASS || '').replace(/\s+/g, '');
+  const user = process.env.SMTP_USER || 'deepakbhee2006@gmail.com';
+  const pass = (process.env.SMTP_PASS || 'fqpr sual utjs sgig').replace(/\s+/g, '');
 
   return nodemailer.createTransport({
     host: process.env.SMTP_HOST || 'smtp.gmail.com',
     port: port,
     secure: port === 465, // true for 465 SSL, false for 587 TLS
     auth: {
-      user: process.env.SMTP_USER,
+      user: user,
       pass: pass,
     },
     tls: {
@@ -22,7 +23,10 @@ const createTransporter = () => {
 
 // Send Email Notification
 const sendEmailNotification = async (toEmail, subject, text, html) => {
-  if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
+  const user = process.env.SMTP_USER || 'deepakbhee2006@gmail.com';
+  const pass = (process.env.SMTP_PASS || 'fqpr sual utjs sgig').replace(/\s+/g, '');
+
+  if (!user || !pass) {
     console.log('⚠️ SMTP credentials not set. Skipping real Email dispatch.');
     return false;
   }
@@ -35,7 +39,7 @@ const sendEmailNotification = async (toEmail, subject, text, html) => {
   try {
     const transporter = createTransporter();
     const mailOptions = {
-      from: `"JaldiKharidoo Store" <${process.env.SMTP_USER}>`,
+      from: `"JaldiKharidoo Store" <${user}>`,
       to: toEmail,
       subject,
       text,
