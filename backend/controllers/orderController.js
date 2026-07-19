@@ -95,26 +95,24 @@ const placeOrder = async (req, res) => {
     const adminEmail = process.env.SMTP_USER || 'deepakbhee2006@gmail.com';
     const customerEmail = populatedOrder.user?.email || req.user?.email;
 
-    // 1. Respond to user INSTANTLY (50ms execution speed!)
-    res.status(201).json({ success: true, order: populatedOrder });
-
-    // 2. Dispatch notifications asynchronously in background tick
-    setImmediate(async () => {
-      try {
-        const promises = [];
-        if (customerEmail) {
-          promises.push(sendEmailNotification(customerEmail, emailSubject, emailText, emailHtml));
-        }
-        if (adminEmail && adminEmail !== customerEmail) {
-          promises.push(sendEmailNotification(adminEmail, emailSubject, emailText, emailHtml));
-        }
-        promises.push(sendSmsNotification(shippingAddress.phone, smsText));
-
-        await Promise.all(promises);
-      } catch (err) {
-        console.error('Background dispatch error:', err.message);
+    // Send notifications in parallel (guaranteed execution on cloud containers)
+    try {
+      const promises = [];
+      if (customerEmail) {
+        promises.push(sendEmailNotification(customerEmail, emailSubject, emailText, emailHtml));
       }
-    });
+      if (adminEmail && adminEmail !== customerEmail) {
+        promises.push(sendEmailNotification(adminEmail, emailSubject, emailText, emailHtml));
+      }
+      if (shippingAddress?.phone) {
+        promises.push(sendSmsNotification(shippingAddress.phone, smsText));
+      }
+      await Promise.allSettled(promises);
+    } catch (err) {
+      console.error('Notification dispatch error:', err.message);
+    }
+
+    res.status(201).json({ success: true, order: populatedOrder });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
