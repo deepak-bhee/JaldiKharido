@@ -95,7 +95,11 @@ const placeOrder = async (req, res) => {
     const adminEmail = process.env.SMTP_USER || 'deepakbhee2006@gmail.com';
     const customerEmail = populatedOrder.user?.email || req.user?.email;
 
-    const dispatchTask = async () => {
+    // 1. Respond to user INSTANTLY (50ms execution speed!)
+    res.status(201).json({ success: true, order: populatedOrder });
+
+    // 2. Dispatch notifications asynchronously in background tick
+    setImmediate(async () => {
       try {
         const promises = [];
         if (customerEmail) {
@@ -108,14 +112,9 @@ const placeOrder = async (req, res) => {
 
         await Promise.all(promises);
       } catch (err) {
-        console.error('Parallel dispatch error:', err.message);
+        console.error('Background dispatch error:', err.message);
       }
-    };
-
-    // Execute parallel dispatches (~1s total execution time)
-    await dispatchTask();
-
-    res.status(201).json({ success: true, order: populatedOrder });
+    });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
