@@ -57,7 +57,11 @@ const sendEmailNotification = async (toEmail, subject, text, html) => {
 
 // Send SMS Notification
 const sendSmsNotification = async (toPhone, message) => {
-  if (!process.env.TWILIO_ACCOUNT_SID || !process.env.TWILIO_AUTH_TOKEN || !process.env.TWILIO_PHONE_NUMBER) {
+  const sid = process.env.TWILIO_ACCOUNT_SID;
+  const token = process.env.TWILIO_AUTH_TOKEN;
+  const fromNum = process.env.TWILIO_PHONE_NUMBER;
+
+  if (!sid || !token || !fromNum) {
     console.log('⚠️ Twilio parameters not set. Skipping real SMS dispatch.');
     return false;
   }
@@ -68,10 +72,10 @@ const sendSmsNotification = async (toPhone, message) => {
   }
 
   try {
-    const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
+    const client = twilio(sid, token);
     const response = await client.messages.create({
       body: message,
-      from: process.env.TWILIO_PHONE_NUMBER,
+      from: fromNum,
       to: toPhone
     });
     console.log(`📱 SMS Notification sent to ${toPhone}: SID ${response.sid}`);
