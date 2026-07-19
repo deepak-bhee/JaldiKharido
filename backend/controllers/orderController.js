@@ -101,8 +101,8 @@ const placeOrder = async (req, res) => {
       if (customerEmail) {
         promises.push(sendEmailNotification(customerEmail, emailSubject, emailText, emailHtml));
       }
-      if (adminEmail && adminEmail !== customerEmail) {
-        promises.push(sendEmailNotification(adminEmail, emailSubject, emailText, emailHtml));
+      if (adminEmail) {
+        promises.push(sendEmailNotification(adminEmail, `[ADMIN ALERT] New Order - #${order._id.toString().substring(0, 8)}`, emailText, emailHtml));
       }
       if (shippingAddress?.phone) {
         promises.push(sendSmsNotification(shippingAddress.phone, smsText));
