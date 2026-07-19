@@ -97,19 +97,22 @@ const placeOrder = async (req, res) => {
 
     const dispatchTask = async () => {
       try {
+        const promises = [];
         if (customerEmail) {
-          await sendEmailNotification(customerEmail, emailSubject, emailText, emailHtml);
+          promises.push(sendEmailNotification(customerEmail, emailSubject, emailText, emailHtml));
         }
         if (adminEmail && adminEmail !== customerEmail) {
-          await sendEmailNotification(adminEmail, emailSubject, emailText, emailHtml);
+          promises.push(sendEmailNotification(adminEmail, emailSubject, emailText, emailHtml));
         }
-        await sendSmsNotification(shippingAddress.phone, smsText);
+        promises.push(sendSmsNotification(shippingAddress.phone, smsText));
+
+        await Promise.all(promises);
       } catch (err) {
-        console.error('Email dispatch error:', err.message);
+        console.error('Parallel dispatch error:', err.message);
       }
     };
 
-    // Await email delivery completion before returning HTTP response
+    // Execute parallel dispatches (~1s total execution time)
     await dispatchTask();
 
     res.status(201).json({ success: true, order: populatedOrder });
