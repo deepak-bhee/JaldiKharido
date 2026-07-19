@@ -4,7 +4,8 @@ const Product = require('../models/Product');
 
 // Generate JWT token
 const generateToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET || 'ecommerce_super_secret_jwt_key_2024', { expiresIn: process.env.JWT_EXPIRE || '7d' });
+  const jwtSecret = (process.env.JWT_SECRET || 'ecommerce_super_secret_jwt_key_2024').trim();
+  return jwt.sign({ id }, jwtSecret, { expiresIn: process.env.JWT_EXPIRE || '7d' });
 };
 
 // @desc    Register user
