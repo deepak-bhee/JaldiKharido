@@ -114,7 +114,7 @@ const ProductDetails = () => {
               src={product.image} 
               alt={product.name} 
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
-              onError={(e) => { e.target.src = 'https://via.placeholder.com/600x600/080d1a/f97316?text=⚡'; }}
+              onError={(e) => { e.target.onerror = null; e.target.src = 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&h=600&fit=crop'; }}
             />
             {discount > 0 && (
               <span className="absolute top-4 left-4 bg-red-500 text-white text-xs font-black px-3 py-1 rounded-full shadow-lg">

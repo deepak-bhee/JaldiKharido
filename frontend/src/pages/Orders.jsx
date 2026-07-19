@@ -178,7 +178,7 @@ const Orders = () => {
                   {order.items.map(item => (
                     <div key={item.product._id || item.product} className="flex gap-4 items-center p-2 rounded-xl bg-white/[0.02] hover:bg-white/[0.04] transition-colors">
                       <div className="w-12 h-12 rounded-lg bg-surface-secondary overflow-hidden border border-white/5">
-                        <img src={item.image || 'https://via.placeholder.com/150'} alt={item.name} className="w-full h-full object-cover" />
+                        <img src={item.image || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&h=600&fit=crop'} alt={item.name} className="w-full h-full object-cover" onError={(e) => { e.target.onerror = null; e.target.src = 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&h=600&fit=crop'; }} />
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="text-sm font-semibold text-white truncate">{item.name}</div>

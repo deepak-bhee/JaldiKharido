@@ -40,7 +40,7 @@ const ProductCard = ({ product: p }) => {
           alt={p.name}
           className="product-img w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           loading="lazy"
-          onError={(e) => { e.target.src = 'https://via.placeholder.com/400x400/080d1a/f97316?text=⚡'; }}
+          onError={(e) => { e.target.onerror = null; e.target.src = 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&h=600&fit=crop'; }}
         />
         {/* Badges */}
         <div className="absolute top-2.5 left-2.5 flex flex-col gap-1.5">
