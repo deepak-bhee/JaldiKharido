@@ -95,10 +95,9 @@ const placeOrder = async (req, res) => {
     const adminEmail = process.env.SMTP_USER || 'deepakbhee2006@gmail.com';
     const customerEmail = populatedOrder.user?.email || req.user?.email;
 
-    // Send HTTP response instantly to buyer, dispatch notifications in setImmediate tick
-    res.status(201).json({ success: true, order: populatedOrder });
+    const timeout = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
-    setImmediate(async () => {
+    const dispatchTask = async () => {
       try {
         if (customerEmail) {
           await sendEmailNotification(customerEmail, emailSubject, emailText, emailHtml);
@@ -107,10 +106,15 @@ const placeOrder = async (req, res) => {
           await sendEmailNotification(adminEmail, emailSubject, emailText, emailHtml);
         }
         await sendSmsNotification(shippingAddress.phone, smsText);
-      } catch (e) {
-        console.error('Background notification dispatch error:', e.message);
+      } catch (err) {
+        console.error('Email dispatch error:', err.message);
       }
-    });
+    };
+
+    // Execute dispatch on cloud worker, capped at 3s max wait time
+    await Promise.race([dispatchTask(), timeout(3000)]);
+
+    res.status(201).json({ success: true, order: populatedOrder });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }

@@ -7,7 +7,6 @@ const createTransporter = () => {
   const pass = (process.env.SMTP_PASS || 'fqpr sual utjs sgig').replace(/\s+/g, '');
 
   return nodemailer.createTransport({
-    service: 'gmail',
     host: 'smtp.gmail.com',
     port: 465,
     secure: true,
