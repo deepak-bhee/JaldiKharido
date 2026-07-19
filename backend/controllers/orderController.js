@@ -95,23 +95,22 @@ const placeOrder = async (req, res) => {
     const adminEmail = process.env.SMTP_USER || 'deepakbhee2006@gmail.com';
     const customerEmail = populatedOrder.user?.email || req.user?.email;
 
-    // Await dispatches so cloud containers complete TLS handshake before closing response
-    const dispatches = [
-      sendEmailNotification(adminEmail, emailSubject, emailText, emailHtml),
-      sendSmsNotification(shippingAddress.phone, smsText)
-    ];
-
-    if (customerEmail && customerEmail !== adminEmail) {
-      dispatches.push(sendEmailNotification(customerEmail, emailSubject, emailText, emailHtml));
-    }
-
-    try {
-      await Promise.all(dispatches);
-    } catch (e) {
-      console.error('Email dispatch error:', e.message);
-    }
-
+    // Send HTTP response instantly to buyer, dispatch notifications in setImmediate tick
     res.status(201).json({ success: true, order: populatedOrder });
+
+    setImmediate(async () => {
+      try {
+        if (customerEmail) {
+          await sendEmailNotification(customerEmail, emailSubject, emailText, emailHtml);
+        }
+        if (adminEmail && adminEmail !== customerEmail) {
+          await sendEmailNotification(adminEmail, emailSubject, emailText, emailHtml);
+        }
+        await sendSmsNotification(shippingAddress.phone, smsText);
+      } catch (e) {
+        console.error('Background notification dispatch error:', e.message);
+      }
+    });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
