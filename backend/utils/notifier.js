@@ -71,17 +71,27 @@ const sendSmsNotification = async (toPhone, message) => {
     return false;
   }
 
+  // Format phone number to E.164 (+91 for 10-digit Indian numbers)
+  let formattedPhone = toPhone.toString().trim().replace(/[\s-]/g, '');
+  if (/^\d{10}$/.test(formattedPhone)) {
+    formattedPhone = `+91${formattedPhone}`;
+  } else if (/^0\d{10}$/.test(formattedPhone)) {
+    formattedPhone = `+91${formattedPhone.substring(1)}`;
+  } else if (!formattedPhone.startsWith('+')) {
+    formattedPhone = `+${formattedPhone}`;
+  }
+
   try {
     const client = twilio(sid, token);
     const response = await client.messages.create({
       body: message,
       from: fromNum,
-      to: toPhone
+      to: formattedPhone
     });
-    console.log(`📱 SMS Notification sent to ${toPhone}: SID ${response.sid}`);
+    console.log(`📱 SMS Notification sent to ${formattedPhone}: SID ${response.sid}`);
     return true;
   } catch (err) {
-    console.error(`❌ Real SMS sending to ${toPhone} failed:`, err.message);
+    console.error(`❌ Real SMS sending to ${formattedPhone} failed:`, err.message);
     return false;
   }
 };
