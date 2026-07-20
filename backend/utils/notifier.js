@@ -4,7 +4,7 @@ const { Resend } = require('resend');
  * Send an email via Official Resend SDK
  */
 const sendResendEmail = async ({ to, subject, text, html }) => {
-  const apiKey = process.env.RESEND_API_KEY || 're_GH1FkXK9_2kE5xegxpXXj8RAicG92t8Ae';
+  const apiKey = process.env.RESEND_API_KEY || 're_aajub2Jt_LE4nfQ8wH1EM58zw3DcyVtKD';
 
   if (!apiKey) {
     console.log('⚠️ RESEND_API_KEY is missing in environment settings. Skipping email.');
