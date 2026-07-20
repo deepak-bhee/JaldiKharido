@@ -1,5 +1,6 @@
 const Order = require('../models/Order');
 const Product = require('../models/Product');
+const { sendOrderConfirmationEmail } = require('../utils/notifier');
 
 // @desc    Place new order
 // @route   POST /api/orders
@@ -55,6 +56,13 @@ const placeOrder = async (req, res) => {
     const populatedOrder = await Order.findById(order._id).populate('user', 'name email');
 
     res.status(201).json({ success: true, order: populatedOrder });
+
+    // Trigger Resend email notification (non-blocking)
+    sendOrderConfirmationEmail({
+      order: populatedOrder,
+      customerEmail: populatedOrder.user?.email || req.user?.email,
+      adminEmail: process.env.ADMIN_EMAIL || 'deepakbhee2006@gmail.com'
+    }).catch(err => console.error('Resend email error:', err.message));
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
