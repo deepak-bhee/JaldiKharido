@@ -1,89 +1,66 @@
-const { Resend } = require('resend');
-const nodemailer = require('nodemailer');
+// Brevo (Sendinblue) Transactional Email Notification Service (REST API)
 
 /**
- * Primary Resend API Dispatcher
+ * Send an email via Brevo REST API
  */
-const sendResendEmail = async ({ to, subject, text, html }) => {
-  const apiKey = process.env.RESEND_API_KEY || 're_GH1FkXK9_2kE5xegxpXXj8RAicG92t8Ae';
+const sendBrevoEmail = async ({ to, subject, text, html }) => {
+  const apiKey = process.env.BREVO_API_KEY;
 
-  if (!apiKey || !to) return false;
+  if (!apiKey) {
+    console.log('⚠️ BREVO_API_KEY is missing in environment settings. Skipping email.');
+    return false;
+  }
 
-  const recipient = to.toString().trim();
-  const fromAddress = process.env.RESEND_FROM_EMAIL || 'JaldiKharidoo <onboarding@resend.dev>';
+  if (!to) {
+    console.log('⚠️ No recipient email provided. Skipping email.');
+    return false;
+  }
+
+  const recipientEmail = to.toString().trim();
+  const senderEmail = process.env.SMTP_USER || 'deepakbhee2006@gmail.com';
+  const senderName = process.env.SENDER_NAME || 'JaldiKharidoo';
 
   try {
-    const resend = new Resend(apiKey);
-    const { data, error } = await resend.emails.send({
-      from: fromAddress,
-      to: [recipient],
-      subject,
-      text,
-      html
+    const response = await fetch('https://api.brevo.com/v3/smtp/email', {
+      method: 'POST',
+      headers: {
+        'accept': 'application/json',
+        'api-key': apiKey,
+        'content-type': 'application/json'
+      },
+      body: JSON.stringify({
+        sender: {
+          name: senderName,
+          email: senderEmail
+        },
+        to: [
+          {
+            email: recipientEmail
+          }
+        ],
+        subject,
+        textContent: text,
+        htmlContent: html
+      })
     });
 
-    if (error) {
-      console.warn(`⚠️ Resend SDK Notice for ${recipient}: ${error.message}`);
+    const data = await response.json();
+
+    if (response.ok) {
+      console.log(`✉️ Brevo Email delivered to ${recipientEmail} (ID: ${data.messageId || data.id})`);
+      return true;
+    } else {
+      console.error(`❌ Brevo API Error for ${recipientEmail}:`, data.message || JSON.stringify(data));
       return false;
     }
-
-    console.log(`✉️ Resend Email delivered to ${recipient} (ID: ${data?.id})`);
-    return true;
   } catch (err) {
-    console.warn(`⚠️ Resend Exception for ${recipient}: ${err.message}`);
+    console.error(`❌ Brevo HTTP Request Exception for ${recipientEmail}:`, err.message);
     return false;
   }
 };
 
 /**
- * Backup Gmail SMTP Dispatcher (Ensures 100% delivery if Resend testing domain restricts recipient)
- */
-const sendGmailSmtpEmail = async ({ to, subject, text, html }) => {
-  const user = process.env.SMTP_USER || 'deepakbhee2006@gmail.com';
-  const pass = (process.env.SMTP_PASS || 'mbfroqaznnyrsofp').replace(/\s+/g, '');
-
-  if (!user || !pass || !to) return false;
-
-  try {
-    const transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST || 'smtp.gmail.com',
-      port: parseInt(process.env.SMTP_PORT || '465', 10),
-      secure: true,
-      auth: { user, pass },
-      tls: { rejectUnauthorized: false }
-    });
-
-    const info = await transporter.sendMail({
-      from: `"JaldiKharidoo" <${user}>`,
-      to: to.toString().trim(),
-      subject,
-      text,
-      html
-    });
-
-    console.log(`✉️ Backup SMTP Email delivered to ${to} (ID: ${info.messageId})`);
-    return true;
-  } catch (err) {
-    console.error(`❌ Backup SMTP Email to ${to} failed:`, err.message);
-    return false;
-  }
-};
-
-/**
- * Smart Unified Email Dispatcher
- */
-const sendEmail = async ({ to, subject, text, html }) => {
-  // 1. Try Resend First
-  const resendSuccess = await sendResendEmail({ to, subject, text, html });
-  if (resendSuccess) return true;
-
-  // 2. If Resend blocked recipient (e.g. unverified domain testing limits), use fallback
-  console.log(`🔄 Retrying email to ${to} via Backup Delivery Channel...`);
-  return await sendGmailSmtpEmail({ to, subject, text, html });
-};
-
-/**
- * Send order confirmation emails to Customer & Admin
+ * Send order confirmation emails to Customer & Admin via Brevo
  */
 const sendOrderConfirmationEmail = async ({ order, customerEmail, adminEmail }) => {
   const orderId = order._id.toString();
@@ -148,10 +125,10 @@ const sendOrderConfirmationEmail = async ({ order, customerEmail, adminEmail }) 
 
   const emailTasks = [];
   if (customerEmail) {
-    emailTasks.push(sendEmail({ to: customerEmail, subject, text, html }));
+    emailTasks.push(sendBrevoEmail({ to: customerEmail, subject, text, html }));
   }
   if (adminEmail && adminEmail !== customerEmail) {
-    emailTasks.push(sendEmail({ to: adminEmail, subject: `[ADMIN ALERT] New Order - #${shortId}`, text, html }));
+    emailTasks.push(sendBrevoEmail({ to: adminEmail, subject: `[ADMIN ALERT] New Order - #${shortId}`, text, html }));
   }
 
   if (emailTasks.length === 0) return false;
@@ -161,7 +138,6 @@ const sendOrderConfirmationEmail = async ({ order, customerEmail, adminEmail }) 
 };
 
 module.exports = {
-  sendResendEmail,
-  sendEmail,
+  sendBrevoEmail,
   sendOrderConfirmationEmail,
 };
