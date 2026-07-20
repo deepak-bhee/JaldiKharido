@@ -1,6 +1,5 @@
 const Order = require('../models/Order');
 const Product = require('../models/Product');
-const { dispatchOrderNotifications } = require('../utils/notifier');
 
 // @desc    Place new order
 // @route   POST /api/orders
@@ -53,59 +52,9 @@ const placeOrder = async (req, res) => {
       totalAmount
     });
 
-    // Simulate SMS notification sendout to the order phone number
-    console.log(`
-┌────────────────────────────────────────────────────────┐
-│  ✉️  SMS NOTIFICATION SENT                             │
-├────────────────────────────────────────────────────────┤
-│  To: ${shippingAddress.phone}
-│  Message: JaldiKharidoo: Your order #${order._id.toString().substring(0, 8)} has
-│  been placed successfully! Total: ₹${totalAmount} via ${paymentMethod || 'COD'}.
-│  Track here: https://jaldi-kharido.vercel.app/orders
-└────────────────────────────────────────────────────────┘
-    `);
-
     const populatedOrder = await Order.findById(order._id).populate('user', 'name email');
 
-    // Trigger real email and SMS notifications (non-blocking)
-    const emailSubject = `Order Placed Successfully - #${order._id.toString().substring(0, 8)}`;
-    const emailText = `Hi ${populatedOrder.user?.name},\n\nYour order #${order._id} has been placed successfully! Total Amount: ₹${totalAmount}. Payment Method: ${paymentMethod || 'COD'}.\n\nThank you for shopping with JaldiKharidoo! 🚀`;
-    const emailHtml = `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 12px; background-color: #ffffff; color: #334155;">
-        <h2 style="color: #f97316; margin-top: 0;">Order Placed Successfully! 🎉</h2>
-        <p>Hi <strong>${populatedOrder.user?.name}</strong>,</p>
-        <p>Your order <strong>#${order._id}</strong> has been created. Here are your order details:</p>
-        <table style="width: 100%; border-collapse: collapse; margin-top: 15px;">
-          <tr style="background-color: #f8fafc;">
-            <th style="padding: 10px; border: 1px solid #e2e8f0; text-align: left; font-weight: bold; color: #475569;">Payment Method</th>
-            <td style="padding: 10px; border: 1px solid #e2e8f0;">${paymentMethod || 'COD'}</td>
-          </tr>
-          <tr>
-            <th style="padding: 10px; border: 1px solid #e2e8f0; text-align: left; font-weight: bold; color: #475569;">Total Price</th>
-            <td style="padding: 10px; border: 1px solid #e2e8f0; font-weight: bold; color: #f97316;">₹${totalAmount}</td>
-          </tr>
-        </table>
-        <p style="margin-top: 20px;">We are preparing your package and will deliver it at lightning speed! 🚀</p>
-        <hr style="border: 0; border-top: 1px solid #e2e8f0; margin-top: 20px;" />
-        <p style="font-size: 11px; color: #94a3b8; text-align: center;">JaldiKharidoo Store • India's Fastest Delivery</p>
-      </div>
-    `;
-    const adminEmail = process.env.ADMIN_EMAIL || process.env.RESEND_FROM_EMAIL || 'deepakbhee2006@gmail.com';
-    const customerEmail = populatedOrder.user?.email || req.user?.email;
-
     res.status(201).json({ success: true, order: populatedOrder });
-
-    // Trigger Resend email notifications asynchronously
-    dispatchOrderNotifications({
-      customerEmail,
-      adminEmail,
-      emailSubject,
-      adminEmailSubject: `[ADMIN ALERT] New Order - #${order._id.toString().substring(0, 8)}`,
-      emailText,
-      emailHtml,
-    }).catch((err) => {
-      console.error('Notification dispatch error:', err.message);
-    });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
