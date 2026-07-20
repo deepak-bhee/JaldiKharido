@@ -18,45 +18,40 @@ const sendResendEmail = async ({ to, subject, text, html }) => {
 
   const recipients = Array.isArray(to) ? to : [to];
   const fromAddress = process.env.RESEND_FROM_EMAIL || 'JaldiKharidoo <onboarding@resend.dev>';
-  let successCount = 0;
 
-  for (const recipient of recipients) {
-    if (!recipient) continue;
+  try {
+    const response = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        from: fromAddress,
+        to: recipients,
+        subject,
+        text,
+        html
+      })
+    });
 
-    try {
-      const response = await fetch('https://api.resend.com/emails', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${apiKey}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          from: fromAddress,
-          to: [recipient],
-          subject,
-          text,
-          html
-        })
-      });
+    const data = await response.json();
 
-      const data = await response.json();
-
-      if (response.ok) {
-        console.log(`✉️ Resend Email delivered to ${recipient} (ID: ${data.id})`);
-        successCount++;
+    if (response.ok) {
+      console.log(`✉️ Resend Email delivered to [${recipients.join(', ')}] (ID: ${data.id})`);
+      return true;
+    } else {
+      if (data.statusCode === 403 || data.message?.includes('verify a domain')) {
+        console.warn(`⚠️ Resend Testing Mode Notice: Email to [${recipients.join(', ')}] was blocked by Resend because using 'onboarding@resend.dev' only permits sending to your account email (${process.env.ADMIN_EMAIL || 'deepakbhee2006@gmail.com'}). To send to all customer emails, verify your domain at resend.com/domains.`);
       } else {
-        if (data.name === 'validation_error' || data.statusCode === 403) {
-          console.warn(`⚠️ Resend Domain Restriction for ${recipient}: ${data.message || 'Onboarding domain can only send to account owner. Add custom domain at resend.com/domains to send to all customers.'}`);
-        } else {
-          console.error(`❌ Resend API Error for ${recipient}:`, data.message || JSON.stringify(data));
-        }
+        console.error(`❌ Resend API Error:`, data.message || JSON.stringify(data));
       }
-    } catch (err) {
-      console.error(`❌ Resend HTTP Exception for ${recipient}:`, err.message);
+      return false;
     }
+  } catch (err) {
+    console.error(`❌ Resend HTTP Request Exception:`, err.message);
+    return false;
   }
-
-  return successCount > 0;
 };
 
 /**
@@ -123,18 +118,18 @@ const sendOrderConfirmationEmail = async ({ order, customerEmail, adminEmail }) 
     </div>
   `;
 
-  const targets = [];
-  if (customerEmail) targets.push(customerEmail);
-  if (adminEmail && adminEmail !== customerEmail) targets.push(adminEmail);
+  const emailTasks = [];
+  if (customerEmail) {
+    emailTasks.push(sendResendEmail({ to: customerEmail, subject, text, html }));
+  }
+  if (adminEmail && adminEmail !== customerEmail) {
+    emailTasks.push(sendResendEmail({ to: adminEmail, subject: `[ADMIN ALERT] New Order - #${shortId}`, text, html }));
+  }
 
-  if (targets.length === 0) return false;
+  if (emailTasks.length === 0) return false;
 
-  return await sendResendEmail({
-    to: targets,
-    subject,
-    text,
-    html
-  });
+  const results = await Promise.allSettled(emailTasks);
+  return results.some(r => r.status === 'fulfilled' && r.value === true);
 };
 
 module.exports = {
