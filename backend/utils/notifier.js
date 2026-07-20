@@ -1,13 +1,13 @@
-// Brevo (Sendinblue) Transactional Email Notification Service (REST API)
+const { Resend } = require('resend');
 
 /**
- * Send an email via Brevo REST API
+ * Send an email via Official Resend SDK
  */
-const sendBrevoEmail = async ({ to, subject, text, html }) => {
-  const apiKey = process.env.BREVO_API_KEY;
+const sendResendEmail = async ({ to, subject, text, html }) => {
+  const apiKey = process.env.RESEND_API_KEY || 're_3Hki2BAs_Bpfdc6dL65FKgk6rcYTYSbnY';
 
   if (!apiKey) {
-    console.log('⚠️ BREVO_API_KEY is missing in environment settings. Skipping email.');
+    console.log('⚠️ RESEND_API_KEY is missing in environment settings. Skipping email.');
     return false;
   }
 
@@ -16,51 +16,34 @@ const sendBrevoEmail = async ({ to, subject, text, html }) => {
     return false;
   }
 
-  const recipientEmail = to.toString().trim();
-  const senderEmail = process.env.SMTP_USER || 'deepakbhee2006@gmail.com';
-  const senderName = process.env.SENDER_NAME || 'JaldiKharidoo';
+  const recipient = to.toString().trim();
+  const fromAddress = process.env.RESEND_FROM_EMAIL || 'JaldiKharidoo <onboarding@resend.dev>';
 
   try {
-    const response = await fetch('https://api.brevo.com/v3/smtp/email', {
-      method: 'POST',
-      headers: {
-        'accept': 'application/json',
-        'api-key': apiKey,
-        'content-type': 'application/json'
-      },
-      body: JSON.stringify({
-        sender: {
-          name: senderName,
-          email: senderEmail
-        },
-        to: [
-          {
-            email: recipientEmail
-          }
-        ],
-        subject,
-        textContent: text,
-        htmlContent: html
-      })
+    const resend = new Resend(apiKey);
+    const { data, error } = await resend.emails.send({
+      from: fromAddress,
+      to: [recipient],
+      subject,
+      text,
+      html
     });
 
-    const data = await response.json();
-
-    if (response.ok) {
-      console.log(`✉️ Brevo Email delivered to ${recipientEmail} (ID: ${data.messageId || data.id})`);
-      return true;
-    } else {
-      console.error(`❌ Brevo API Error for ${recipientEmail}:`, data.message || JSON.stringify(data));
+    if (error) {
+      console.error(`❌ Resend SDK Error for ${recipient}:`, error.message || error);
       return false;
     }
+
+    console.log(`✉️ Resend Email delivered to ${recipient} (ID: ${data?.id})`);
+    return true;
   } catch (err) {
-    console.error(`❌ Brevo HTTP Request Exception for ${recipientEmail}:`, err.message);
+    console.error(`❌ Resend SDK Exception for ${recipient}:`, err.message);
     return false;
   }
 };
 
 /**
- * Send order confirmation emails to Customer & Admin via Brevo
+ * Send order confirmation email to Customer & Admin via Resend ONLY
  */
 const sendOrderConfirmationEmail = async ({ order, customerEmail, adminEmail }) => {
   const orderId = order._id.toString();
@@ -125,10 +108,10 @@ const sendOrderConfirmationEmail = async ({ order, customerEmail, adminEmail }) 
 
   const emailTasks = [];
   if (customerEmail) {
-    emailTasks.push(sendBrevoEmail({ to: customerEmail, subject, text, html }));
+    emailTasks.push(sendResendEmail({ to: customerEmail, subject, text, html }));
   }
   if (adminEmail && adminEmail !== customerEmail) {
-    emailTasks.push(sendBrevoEmail({ to: adminEmail, subject: `[ADMIN ALERT] New Order - #${shortId}`, text, html }));
+    emailTasks.push(sendResendEmail({ to: adminEmail, subject: `[ADMIN ALERT] New Order - #${shortId}`, text, html }));
   }
 
   if (emailTasks.length === 0) return false;
@@ -138,6 +121,6 @@ const sendOrderConfirmationEmail = async ({ order, customerEmail, adminEmail }) 
 };
 
 module.exports = {
-  sendBrevoEmail,
+  sendResendEmail,
   sendOrderConfirmationEmail,
 };
