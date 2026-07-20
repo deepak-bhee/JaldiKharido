@@ -55,14 +55,22 @@ const placeOrder = async (req, res) => {
 
     const populatedOrder = await Order.findById(order._id).populate('user', 'name email');
 
-    res.status(201).json({ success: true, order: populatedOrder });
+    // Fire email BEFORE response to ensure it runs on Render
+    const customerEmail = populatedOrder.user?.email || req.user?.email;
+    const adminEmail = process.env.ADMIN_EMAIL || 'deepakbhee2006@gmail.com';
+    console.log(`📧 Sending order email — customer: ${customerEmail}, admin: ${adminEmail}`);
 
-    // Trigger Resend email notification (non-blocking)
     sendOrderConfirmationEmail({
       order: populatedOrder,
-      customerEmail: populatedOrder.user?.email || req.user?.email,
-      adminEmail: process.env.ADMIN_EMAIL || 'deepakbhee2006@gmail.com'
-    }).catch(err => console.error('Resend email error:', err.message));
+      customerEmail,
+      adminEmail
+    }).then(result => {
+      console.log(`📧 Email dispatch result: ${result ? '✅ sent' : '❌ failed'}`);
+    }).catch(err => {
+      console.error('📧 Email dispatch error:', err.message);
+    });
+
+    res.status(201).json({ success: true, order: populatedOrder });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }

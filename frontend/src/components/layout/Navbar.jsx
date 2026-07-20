@@ -226,9 +226,9 @@ const Navbar = () => {
           >
             
             {/* Brand */}
-            <Link to="/" className="flex items-center gap-2 group flex-shrink-0">
-              <span className="text-2xl group-hover:animate-pulse-dot">⚡</span>
-              <span className="font-display font-black text-xl tracking-tight">
+            <Link to="/" className="flex items-center gap-1.5 group flex-shrink-0">
+              <span className="text-xl sm:text-2xl group-hover:animate-pulse-dot">⚡</span>
+              <span className="font-display font-black text-base sm:text-xl tracking-tight">
                 <span className="gradient-text">Jaldi</span>
                 <span className="text-white">Kharidoo</span>
               </span>
@@ -321,37 +321,45 @@ const Navbar = () => {
             </div>
 
             {/* Mobile: cart + hamburger */}
-            <div className="flex md:hidden items-center gap-2 flex-shrink-0">
+            <div className="flex md:hidden items-center gap-1 flex-shrink-0">
               <AnimatedThemeToggler />
               {!isAdmin() && (
-                <Link to="/cart" className="relative p-2 text-slate-400 hover:text-white">
+                <Link to="/cart" className="relative p-2.5 text-slate-400 hover:text-white rounded-xl hover:bg-white/5 transition-colors">
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                       d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13l-1.5 6M17 13l1.5 6M9 21a1 1 0 100-2 1 1 0 000 2zm8 0a1 1 0 100-2 1 1 0 000 2z" />
                   </svg>
                   {cartCount > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-brand text-white text-[10px] font-bold
+                    <span className="absolute top-0.5 right-0.5 bg-brand text-white text-[9px] font-bold
                       w-4 h-4 rounded-full flex items-center justify-center">
                       {cartCount > 9 ? '9+' : cartCount}
                     </span>
                   )}
                 </Link>
               )}
+              {/* Hamburger — large tap target for mobile */}
               <button
                 onClick={() => setOpen(o => !o)}
-                className="p-2 text-slate-400 hover:text-white rounded-lg hover:bg-white/5 transition"
-                aria-label="Menu"
+                className={`relative p-2.5 rounded-xl transition-all duration-200 min-w-[44px] min-h-[44px] flex items-center justify-center
+                  ${open ? 'text-white bg-white/10' : 'text-slate-300 hover:text-white hover:bg-white/8'}`}
+                aria-label={open ? 'Close menu' : 'Open menu'}
+                aria-expanded={open}
               >
-                {open
-                  ? <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"/></svg>
-                  : <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16"/></svg>
-                }
+                <span className="sr-only">{open ? 'Close menu' : 'Open menu'}</span>
+                <div className="w-5 h-4 flex flex-col justify-between overflow-hidden">
+                  <span className={`block h-0.5 bg-current rounded-full transition-all duration-300 origin-center
+                    ${open ? 'rotate-45 translate-y-[7px]' : ''}`} />
+                  <span className={`block h-0.5 bg-current rounded-full transition-all duration-300
+                    ${open ? 'opacity-0 -translate-x-2' : ''}`} />
+                  <span className={`block h-0.5 bg-current rounded-full transition-all duration-300 origin-center
+                    ${open ? '-rotate-45 -translate-y-[9px]' : ''}`} />
+                </div>
               </button>
             </div>
           </div>
 
-          {/* Mobile Magic Search Input Row (Only rendered on the Homepage) */}
-          {!isAdmin() && isHomepage && (
+          {/* Mobile Search — shown on ALL pages (not just homepage) */}
+          {!isAdmin() && (
             <div ref={mobileSearchContainerRef} className="md:hidden pb-3 relative">
               <form onSubmit={handleSearchSubmit} className="relative">
                 <input
@@ -360,7 +368,7 @@ const Navbar = () => {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onFocus={() => setShowSuggestions(true)}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl pl-4 pr-10 py-1.5 text-xs text-white focus:outline-none focus:border-brand/50 transition-all placeholder:text-slate-500"
+                  className="w-full bg-white/5 border border-white/10 rounded-xl pl-4 pr-10 py-2 text-sm text-white focus:outline-none focus:border-brand/50 focus:ring-1 focus:ring-brand/30 transition-all placeholder:text-slate-500"
                 />
                 <button type="submit" className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors">
                   {searchLoading ? (
@@ -372,17 +380,15 @@ const Navbar = () => {
                   )}
                 </button>
               </form>
-
-              {/* Mobile Suggestions Overlay */}
               {renderSuggestions()}
             </div>
           )}
 
-          {/* Mobile drawer floating under the capsule wrapper */}
+          {/* Mobile drawer */}
           <div className={`md:hidden nav-drawer ${open ? 'open' : 'closed'}
-            absolute top-full left-0 right-0 mt-2 bg-surface/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl overflow-hidden`}
+            absolute top-full left-0 right-0 mt-2 bg-surface/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl overflow-hidden z-[1100]`}
           >
-            <div className="px-4 pt-3 pb-4 flex flex-col gap-1">
+            <div className="px-3 pt-3 pb-4 flex flex-col gap-0.5">
               {isAdmin() ? (
                 <MobileLink to="/admin" label="⚙️ Admin Dashboard" active={location.pathname === '/admin'} />
               ) : (
@@ -390,21 +396,27 @@ const Navbar = () => {
                   <MobileLink to="/"        label="🏠 Home"      active={location.pathname === '/'} />
                   <MobileLink to="/catalog" label="🛍️ Shop"      active={location.pathname === '/catalog'} />
                   {isLoggedIn() && <MobileLink to="/orders" label="📦 My Orders" active={location.pathname === '/orders'} />}
+                  {isLoggedIn() && <MobileLink to="/cart"   label="🛒 Cart" active={location.pathname === '/cart'} />}
                 </>
               )}
-              
-              <div className="border-t border-white/[0.06] mt-2 pt-3">
+
+              <div className="border-t border-white/[0.06] mt-3 pt-3">
                 {isLoggedIn() ? (
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-slate-400">👤 {user?.name}</span>
+                  <div className="flex items-center justify-between px-1">
+                    <div className="flex items-center gap-2">
+                      <div className="w-7 h-7 rounded-full bg-brand/20 flex items-center justify-center text-sm">
+                        {user?.name?.charAt(0).toUpperCase()}
+                      </div>
+                      <span className="text-sm text-slate-300 font-medium">{user?.name}</span>
+                    </div>
                     <button onClick={handleLogout}
-                      className="text-sm text-red-400 border border-red-500/30 px-3 py-1 rounded-lg">
+                      className="text-sm text-red-400 border border-red-500/30 px-3 py-1.5 rounded-lg hover:bg-red-500/10 transition-colors">
                       Logout
                     </button>
                   </div>
                 ) : (
-                  <Link to="/login" className="block w-full text-center py-2.5 bg-gradient-btn text-white font-semibold rounded-lg">
-                    Sign In
+                  <Link to="/login" className="block w-full text-center py-3 bg-gradient-btn text-white font-semibold rounded-xl text-sm">
+                    Sign In →
                   </Link>
                 )}
               </div>
@@ -431,16 +443,18 @@ const Navbar = () => {
         />
       )}
 
-      {/* Spacer - Dynamically offsets navbar heights (increased from h-16/28 to h-20/32 to account for taller unscrolled navbar) */}
-      <div className={`transition-all duration-500 ${(!isAdmin() && isHomepage) ? 'h-32 md:h-20' : 'h-20'}`} />
+      {/* Spacer - accounts for navbar height + mobile search bar */}
+      <div className={`transition-all duration-500 ${!isAdmin() ? 'h-[110px] md:h-20' : 'h-20'}`} />
     </>
   );
 };
 
 const MobileLink = ({ to, label, active }) => (
   <Link to={to}
-    className={`px-3 py-2.5 rounded-lg text-sm font-medium transition-all
-      ${active ? 'text-brand bg-brand/10' : 'text-slate-300 hover:text-white hover:bg-white/5'}`}>
+    className={`flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium transition-all duration-200 min-h-[48px]
+      ${active
+        ? 'text-brand bg-brand/10 border border-brand/20'
+        : 'text-slate-300 hover:text-white hover:bg-white/5'}`}>
     {label}
   </Link>
 );
