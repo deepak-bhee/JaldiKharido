@@ -39,8 +39,7 @@ app.get('/api/health', (req, res) => {
     timestamp: new Date(),
     notifications: getNotificationStatus(),
     env: {
-      BREVO_API_KEY: process.env.BREVO_API_KEY ? '✅ SET' : '❌ MISSING',
-      SMTP_USER: process.env.SMTP_USER ? '✅ SET' : '❌ MISSING',
+      RESEND_API_KEY: process.env.RESEND_API_KEY ? '✅ SET' : '❌ MISSING',
       NODE_VERSION: process.version,
     }
   });
@@ -52,11 +51,11 @@ app.post('/api/test-email', async (req, res) => {
   try {
     const result = await sendEmailNotification(
       to,
-      'JaldiKharidoo — Live Server Email Test 🚀',
-      'Email delivery from your live Render server is working!',
-      '<h2 style="color:#f97316;">JaldiKharidoo ⚡</h2><p>Live server email delivery is working! 🎉</p>'
+      'JaldiKharidoo — Resend Email Test 🚀',
+      'Email delivery via Resend REST API is working!',
+      '<h2 style="color:#f97316;">JaldiKharidoo ⚡</h2><p>Resend REST API email delivery is working! 🎉</p>'
     );
-    res.json({ success: result, to, BREVO_KEY: process.env.BREVO_API_KEY ? '✅ SET' : '❌ MISSING' });
+    res.json({ success: result, to, RESEND_KEY: process.env.RESEND_API_KEY ? '✅ SET' : '❌ MISSING' });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }

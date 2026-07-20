@@ -1,55 +1,54 @@
 /**
- * Brevo (Sendinblue) HTTP REST API — works on Render/Vercel/any cloud host
- * No SMTP ports needed. Delivers to ALL email addresses. No domain required.
+ * Resend Email Notification Service (HTTPS REST API)
+ * Sends emails directly via Resend API (https://api.resend.com/emails)
  */
 const sendEmailNotification = async (toEmail, subject, text, html) => {
-  const apiKey = process.env.BREVO_API_KEY;
-  const senderEmail = process.env.SMTP_USER || 'deepakbhee2006@gmail.com';
+  const apiKey = process.env.RESEND_API_KEY;
+  const fromEmail = process.env.RESEND_FROM_EMAIL || 'JaldiKharidoo <onboarding@resend.dev>';
 
   if (!apiKey) {
-    console.log('⚠️ BREVO_API_KEY missing. Skipping email.');
+    console.log('⚠️ RESEND_API_KEY is missing in environment. Skipping email.');
     return false;
   }
 
   if (!toEmail) {
-    console.log('⚠️ Recipient email missing. Skipping email.');
+    console.log('⚠️ Recipient email is missing. Skipping email.');
     return false;
   }
 
   try {
-    const response = await fetch('https://api.brevo.com/v3/smtp/email', {
+    const response = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
-        'accept': 'application/json',
-        'api-key': apiKey,
-        'content-type': 'application/json'
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`
       },
       body: JSON.stringify({
-        sender: { name: 'JaldiKharidoo', email: senderEmail },
-        to: [{ email: toEmail.toString().trim() }],
+        from: fromEmail,
+        to: [toEmail.toString().trim()],
         subject,
-        textContent: text,
-        htmlContent: html
+        text,
+        html
       })
     });
 
     const data = await response.json();
 
     if (response.ok) {
-      console.log(`✉️ Email delivered to ${toEmail} (ID: ${data.messageId || data.id})`);
+      console.log(`✉️ Resend Email delivered to ${toEmail} (ID: ${data.id})`);
       return true;
     } else {
-      console.error(`❌ Brevo Error for ${toEmail}:`, data.message || JSON.stringify(data));
+      console.error(`❌ Resend API Error for ${toEmail}:`, data.message || JSON.stringify(data));
       return false;
     }
   } catch (err) {
-    console.error(`❌ Brevo Exception for ${toEmail}:`, err.message);
+    console.error(`❌ Resend API Exception for ${toEmail}:`, err.message);
     return false;
   }
 };
 
 /**
- * Send order confirmation emails to Customer & Admin
+ * Send order confirmation email to Customer & Admin via Resend
  */
 const sendOrderConfirmationEmail = async ({ order, customerEmail, adminEmail }) => {
   const orderId = order._id.toString();
