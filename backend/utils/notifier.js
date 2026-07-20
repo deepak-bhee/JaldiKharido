@@ -1,63 +1,49 @@
-const nodemailer = require('nodemailer');
-
-// Create Nodemailer Transporter for Gmail SMTP
-const createTransporter = () => {
-  const user = process.env.SMTP_USER || 'deepakbhee2006@gmail.com';
-  const pass = (process.env.SMTP_PASS || 'mbfroqaznnyrsofp').replace(/\s+/g, '');
-
-  return nodemailer.createTransport({
-    host: process.env.SMTP_HOST || 'smtp.gmail.com',
-    port: parseInt(process.env.SMTP_PORT || '465', 10),
-    secure: true,
-    pool: false,
-    auth: {
-      user: user,
-      pass: pass,
-    },
-    tls: {
-      rejectUnauthorized: false
-    }
-  });
-};
+const { Resend } = require('resend');
 
 /**
- * Send an email notification via Gmail SMTP to ANY user address
+ * Send an email via Official Resend SDK
  */
-const sendEmailNotification = async (toEmail, subject, text, html) => {
-  const user = process.env.SMTP_USER || 'deepakbhee2006@gmail.com';
-  const pass = (process.env.SMTP_PASS || 'mbfroqaznnyrsofp').replace(/\s+/g, '');
+const sendResendEmail = async ({ to, subject, text, html }) => {
+  const apiKey = process.env.RESEND_API_KEY || 're_GH1FkXK9_2kE5xegxpXXj8RAicG92t8Ae';
 
-  if (!user || !pass) {
-    console.log('⚠️ SMTP credentials missing. Skipping email.');
+  if (!apiKey) {
+    console.log('⚠️ RESEND_API_KEY is missing in environment settings. Skipping email.');
     return false;
   }
 
-  if (!toEmail) {
-    console.log('⚠️ Recipient email missing. Skipping email.');
+  if (!to) {
+    console.log('⚠️ No recipient email provided. Skipping email.');
     return false;
   }
+
+  const recipient = to.toString().trim();
+  const fromAddress = process.env.RESEND_FROM_EMAIL || 'JaldiKharidoo <onboarding@resend.dev>';
 
   try {
-    const transporter = createTransporter();
-    const mailOptions = {
-      from: `"JaldiKharidoo" <${user}>`,
-      to: toEmail,
+    const resend = new Resend(apiKey);
+    const { data, error } = await resend.emails.send({
+      from: fromAddress,
+      to: [recipient],
       subject,
       text,
-    };
-    if (html) mailOptions.html = html;
+      html
+    });
 
-    const info = await transporter.sendMail(mailOptions);
-    console.log(`✉️ Gmail SMTP Email delivered to ${toEmail} (ID: ${info.messageId})`);
+    if (error) {
+      console.error(`❌ Resend SDK Error for ${recipient}:`, error.message || error);
+      return false;
+    }
+
+    console.log(`✉️ Resend Email delivered to ${recipient} (ID: ${data?.id})`);
     return true;
   } catch (err) {
-    console.error(`❌ Gmail SMTP Email to ${toEmail} failed:`, err.message);
+    console.error(`❌ Resend SDK Exception for ${recipient}:`, err.message);
     return false;
   }
 };
 
 /**
- * Send order confirmation emails to Customer & Admin in parallel
+ * Send order confirmation email to Customer & Admin via Resend
  */
 const sendOrderConfirmationEmail = async ({ order, customerEmail, adminEmail }) => {
   const orderId = order._id.toString();
@@ -122,10 +108,10 @@ const sendOrderConfirmationEmail = async ({ order, customerEmail, adminEmail }) 
 
   const emailTasks = [];
   if (customerEmail) {
-    emailTasks.push(sendEmailNotification(customerEmail, subject, text, html));
+    emailTasks.push(sendResendEmail({ to: customerEmail, subject, text, html }));
   }
   if (adminEmail && adminEmail !== customerEmail) {
-    emailTasks.push(sendEmailNotification(adminEmail, `[ADMIN ALERT] New Order - #${shortId}`, text, html));
+    emailTasks.push(sendResendEmail({ to: adminEmail, subject: `[ADMIN ALERT] New Order - #${shortId}`, text, html }));
   }
 
   if (emailTasks.length === 0) return false;
@@ -135,6 +121,6 @@ const sendOrderConfirmationEmail = async ({ order, customerEmail, adminEmail }) 
 };
 
 module.exports = {
-  sendEmailNotification,
+  sendResendEmail,
   sendOrderConfirmationEmail,
 };
