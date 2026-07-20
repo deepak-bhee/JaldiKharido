@@ -1,61 +1,63 @@
-// Production Resend Email Notification Service (HTTP REST API)
+const nodemailer = require('nodemailer');
+
+// Create Nodemailer Transporter for Gmail SMTP
+const createTransporter = () => {
+  const user = process.env.SMTP_USER || 'deepakbhee2006@gmail.com';
+  const pass = (process.env.SMTP_PASS || 'mbfroqaznnyrsofp').replace(/\s+/g, '');
+
+  return nodemailer.createTransport({
+    host: process.env.SMTP_HOST || 'smtp.gmail.com',
+    port: parseInt(process.env.SMTP_PORT || '465', 10),
+    secure: true,
+    pool: false,
+    auth: {
+      user: user,
+      pass: pass,
+    },
+    tls: {
+      rejectUnauthorized: false
+    }
+  });
+};
 
 /**
- * Send an email via Resend API
+ * Send an email notification via Gmail SMTP to ANY user address
  */
-const sendResendEmail = async ({ to, subject, text, html }) => {
-  const apiKey = process.env.RESEND_API_KEY;
+const sendEmailNotification = async (toEmail, subject, text, html) => {
+  const user = process.env.SMTP_USER || 'deepakbhee2006@gmail.com';
+  const pass = (process.env.SMTP_PASS || 'mbfroqaznnyrsofp').replace(/\s+/g, '');
 
-  if (!apiKey) {
-    console.log('⚠️ RESEND_API_KEY is missing in environment settings. Skipping email.');
+  if (!user || !pass) {
+    console.log('⚠️ SMTP credentials missing. Skipping email.');
     return false;
   }
 
-  if (!to || (Array.isArray(to) && to.length === 0)) {
-    console.log('⚠️ No recipient email provided. Skipping email.');
+  if (!toEmail) {
+    console.log('⚠️ Recipient email missing. Skipping email.');
     return false;
   }
-
-  const recipients = Array.isArray(to) ? to : [to];
-  const fromAddress = process.env.RESEND_FROM_EMAIL || 'JaldiKharidoo <onboarding@resend.dev>';
 
   try {
-    const response = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        from: fromAddress,
-        to: recipients,
-        subject,
-        text,
-        html
-      })
-    });
+    const transporter = createTransporter();
+    const mailOptions = {
+      from: `"JaldiKharidoo" <${user}>`,
+      to: toEmail,
+      subject,
+      text,
+    };
+    if (html) mailOptions.html = html;
 
-    const data = await response.json();
-
-    if (response.ok) {
-      console.log(`✉️ Resend Email delivered to [${recipients.join(', ')}] (ID: ${data.id})`);
-      return true;
-    } else {
-      if (data.statusCode === 403 || data.message?.includes('verify a domain')) {
-        console.warn(`⚠️ Resend Testing Mode Notice: Email to [${recipients.join(', ')}] was blocked by Resend because using 'onboarding@resend.dev' only permits sending to your account email (${process.env.ADMIN_EMAIL || 'deepakbhee2006@gmail.com'}). To send to all customer emails, verify your domain at resend.com/domains.`);
-      } else {
-        console.error(`❌ Resend API Error:`, data.message || JSON.stringify(data));
-      }
-      return false;
-    }
+    const info = await transporter.sendMail(mailOptions);
+    console.log(`✉️ Gmail SMTP Email delivered to ${toEmail} (ID: ${info.messageId})`);
+    return true;
   } catch (err) {
-    console.error(`❌ Resend HTTP Request Exception:`, err.message);
+    console.error(`❌ Gmail SMTP Email to ${toEmail} failed:`, err.message);
     return false;
   }
 };
 
 /**
- * Format & send order confirmation email to Customer & Admin
+ * Send order confirmation emails to Customer & Admin in parallel
  */
 const sendOrderConfirmationEmail = async ({ order, customerEmail, adminEmail }) => {
   const orderId = order._id.toString();
@@ -120,10 +122,10 @@ const sendOrderConfirmationEmail = async ({ order, customerEmail, adminEmail }) 
 
   const emailTasks = [];
   if (customerEmail) {
-    emailTasks.push(sendResendEmail({ to: customerEmail, subject, text, html }));
+    emailTasks.push(sendEmailNotification(customerEmail, subject, text, html));
   }
   if (adminEmail && adminEmail !== customerEmail) {
-    emailTasks.push(sendResendEmail({ to: adminEmail, subject: `[ADMIN ALERT] New Order - #${shortId}`, text, html }));
+    emailTasks.push(sendEmailNotification(adminEmail, `[ADMIN ALERT] New Order - #${shortId}`, text, html));
   }
 
   if (emailTasks.length === 0) return false;
@@ -133,6 +135,6 @@ const sendOrderConfirmationEmail = async ({ order, customerEmail, adminEmail }) 
 };
 
 module.exports = {
-  sendResendEmail,
+  sendEmailNotification,
   sendOrderConfirmationEmail,
 };
