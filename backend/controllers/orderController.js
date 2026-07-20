@@ -55,20 +55,21 @@ const placeOrder = async (req, res) => {
 
     const populatedOrder = await Order.findById(order._id).populate('user', 'name email');
 
-    // Fire email BEFORE response to ensure it runs on Render
+    // Send email via Brevo REST API before completing response
     const customerEmail = populatedOrder.user?.email || req.user?.email;
     const adminEmail = process.env.ADMIN_EMAIL || 'deepakbhee2006@gmail.com';
-    console.log(`📧 Sending order email — customer: ${customerEmail}, admin: ${adminEmail}`);
+    console.log(`📧 Dispatching order confirmation email... Customer: ${customerEmail} | Admin: ${adminEmail}`);
 
-    sendOrderConfirmationEmail({
-      order: populatedOrder,
-      customerEmail,
-      adminEmail
-    }).then(result => {
-      console.log(`📧 Email dispatch result: ${result ? '✅ sent' : '❌ failed'}`);
-    }).catch(err => {
-      console.error('📧 Email dispatch error:', err.message);
-    });
+    try {
+      const emailSent = await sendOrderConfirmationEmail({
+        order: populatedOrder,
+        customerEmail,
+        adminEmail
+      });
+      console.log(`📧 Order email result: ${emailSent ? '✅ DELIVERED' : '❌ FAILED'}`);
+    } catch (emailErr) {
+      console.error('📧 Order email exception:', emailErr.message);
+    }
 
     res.status(201).json({ success: true, order: populatedOrder });
   } catch (error) {

@@ -337,23 +337,26 @@ const Navbar = () => {
                   )}
                 </Link>
               )}
-              {/* Hamburger — large tap target for mobile */}
+              {/* Hamburger Toggle Button */}
               <button
+                type="button"
                 onClick={() => setOpen(o => !o)}
-                className={`relative p-2.5 rounded-xl transition-all duration-200 min-w-[44px] min-h-[44px] flex items-center justify-center
-                  ${open ? 'text-white bg-white/10' : 'text-slate-300 hover:text-white hover:bg-white/8'}`}
-                aria-label={open ? 'Close menu' : 'Open menu'}
+                className={`p-2.5 rounded-xl transition-all duration-200 min-w-[44px] min-h-[44px] flex items-center justify-center border
+                  ${open 
+                    ? 'text-white bg-brand/20 border-brand/40 shadow-glow' 
+                    : 'text-slate-300 hover:text-white bg-white/5 border-white/10 hover:bg-white/10'}`}
+                aria-label={open ? 'Close navigation menu' : 'Open navigation menu'}
                 aria-expanded={open}
               >
-                <span className="sr-only">{open ? 'Close menu' : 'Open menu'}</span>
-                <div className="w-5 h-4 flex flex-col justify-between overflow-hidden">
-                  <span className={`block h-0.5 bg-current rounded-full transition-all duration-300 origin-center
-                    ${open ? 'rotate-45 translate-y-[7px]' : ''}`} />
-                  <span className={`block h-0.5 bg-current rounded-full transition-all duration-300
-                    ${open ? 'opacity-0 -translate-x-2' : ''}`} />
-                  <span className={`block h-0.5 bg-current rounded-full transition-all duration-300 origin-center
-                    ${open ? '-rotate-45 -translate-y-[9px]' : ''}`} />
-                </div>
+                {open ? (
+                  <svg className="w-6 h-6 text-brand" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                ) : (
+                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 6h16M4 12h16M4 18h16" />
+                  </svg>
+                )}
               </button>
             </div>
           </div>
