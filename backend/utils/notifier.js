@@ -18,36 +18,45 @@ const sendResendEmail = async ({ to, subject, text, html }) => {
 
   const recipients = Array.isArray(to) ? to : [to];
   const fromAddress = process.env.RESEND_FROM_EMAIL || 'JaldiKharidoo <onboarding@resend.dev>';
+  let successCount = 0;
 
-  try {
-    const response = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        from: fromAddress,
-        to: recipients,
-        subject,
-        text,
-        html
-      })
-    });
+  for (const recipient of recipients) {
+    if (!recipient) continue;
 
-    const data = await response.json();
+    try {
+      const response = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${apiKey}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          from: fromAddress,
+          to: [recipient],
+          subject,
+          text,
+          html
+        })
+      });
 
-    if (response.ok) {
-      console.log(`✉️ Resend Email delivered to [${recipients.join(', ')}] (ID: ${data.id})`);
-      return true;
-    } else {
-      console.error(`❌ Resend API Error:`, data.message || JSON.stringify(data));
-      return false;
+      const data = await response.json();
+
+      if (response.ok) {
+        console.log(`✉️ Resend Email delivered to ${recipient} (ID: ${data.id})`);
+        successCount++;
+      } else {
+        if (data.name === 'validation_error' || data.statusCode === 403) {
+          console.warn(`⚠️ Resend Domain Restriction for ${recipient}: ${data.message || 'Onboarding domain can only send to account owner. Add custom domain at resend.com/domains to send to all customers.'}`);
+        } else {
+          console.error(`❌ Resend API Error for ${recipient}:`, data.message || JSON.stringify(data));
+        }
+      }
+    } catch (err) {
+      console.error(`❌ Resend HTTP Exception for ${recipient}:`, err.message);
     }
-  } catch (err) {
-    console.error(`❌ Resend HTTP Request Exception:`, err.message);
-    return false;
   }
+
+  return successCount > 0;
 };
 
 /**
