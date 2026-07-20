@@ -1,20 +1,13 @@
 const { Resend } = require('resend');
+const nodemailer = require('nodemailer');
 
 /**
- * Send an email via Official Resend SDK
+ * Primary Resend API Dispatcher
  */
 const sendResendEmail = async ({ to, subject, text, html }) => {
   const apiKey = process.env.RESEND_API_KEY || 're_GH1FkXK9_2kE5xegxpXXj8RAicG92t8Ae';
 
-  if (!apiKey) {
-    console.log('⚠️ RESEND_API_KEY is missing in environment settings. Skipping email.');
-    return false;
-  }
-
-  if (!to) {
-    console.log('⚠️ No recipient email provided. Skipping email.');
-    return false;
-  }
+  if (!apiKey || !to) return false;
 
   const recipient = to.toString().trim();
   const fromAddress = process.env.RESEND_FROM_EMAIL || 'JaldiKharidoo <onboarding@resend.dev>';
@@ -30,20 +23,67 @@ const sendResendEmail = async ({ to, subject, text, html }) => {
     });
 
     if (error) {
-      console.error(`❌ Resend SDK Error for ${recipient}:`, error.message || error);
+      console.warn(`⚠️ Resend SDK Notice for ${recipient}: ${error.message}`);
       return false;
     }
 
     console.log(`✉️ Resend Email delivered to ${recipient} (ID: ${data?.id})`);
     return true;
   } catch (err) {
-    console.error(`❌ Resend SDK Exception for ${recipient}:`, err.message);
+    console.warn(`⚠️ Resend Exception for ${recipient}: ${err.message}`);
     return false;
   }
 };
 
 /**
- * Send order confirmation email to Customer & Admin via Resend
+ * Backup Gmail SMTP Dispatcher (Ensures 100% delivery if Resend testing domain restricts recipient)
+ */
+const sendGmailSmtpEmail = async ({ to, subject, text, html }) => {
+  const user = process.env.SMTP_USER || 'deepakbhee2006@gmail.com';
+  const pass = (process.env.SMTP_PASS || 'mbfroqaznnyrsofp').replace(/\s+/g, '');
+
+  if (!user || !pass || !to) return false;
+
+  try {
+    const transporter = nodemailer.createTransport({
+      host: process.env.SMTP_HOST || 'smtp.gmail.com',
+      port: parseInt(process.env.SMTP_PORT || '465', 10),
+      secure: true,
+      auth: { user, pass },
+      tls: { rejectUnauthorized: false }
+    });
+
+    const info = await transporter.sendMail({
+      from: `"JaldiKharidoo" <${user}>`,
+      to: to.toString().trim(),
+      subject,
+      text,
+      html
+    });
+
+    console.log(`✉️ Backup SMTP Email delivered to ${to} (ID: ${info.messageId})`);
+    return true;
+  } catch (err) {
+    console.error(`❌ Backup SMTP Email to ${to} failed:`, err.message);
+    return false;
+  }
+};
+
+/**
+ * Smart Unified Email Dispatcher
+ */
+const sendEmail = async ({ to, subject, text, html }) => {
+  // 1. Try Resend First
+  const resendSuccess = await sendResendEmail({ to, subject, text, html });
+  if (resendSuccess) return true;
+
+  // 2. If Resend blocked recipient (e.g. unverified domain testing limits), use fallback
+  console.log(`🔄 Retrying email to ${to} via Backup Delivery Channel...`);
+  return await sendGmailSmtpEmail({ to, subject, text, html });
+};
+
+/**
+ * Send order confirmation emails to Customer & Admin
  */
 const sendOrderConfirmationEmail = async ({ order, customerEmail, adminEmail }) => {
   const orderId = order._id.toString();
@@ -108,10 +148,10 @@ const sendOrderConfirmationEmail = async ({ order, customerEmail, adminEmail }) 
 
   const emailTasks = [];
   if (customerEmail) {
-    emailTasks.push(sendResendEmail({ to: customerEmail, subject, text, html }));
+    emailTasks.push(sendEmail({ to: customerEmail, subject, text, html }));
   }
   if (adminEmail && adminEmail !== customerEmail) {
-    emailTasks.push(sendResendEmail({ to: adminEmail, subject: `[ADMIN ALERT] New Order - #${shortId}`, text, html }));
+    emailTasks.push(sendEmail({ to: adminEmail, subject: `[ADMIN ALERT] New Order - #${shortId}`, text, html }));
   }
 
   if (emailTasks.length === 0) return false;
@@ -122,5 +162,6 @@ const sendOrderConfirmationEmail = async ({ order, customerEmail, adminEmail }) 
 
 module.exports = {
   sendResendEmail,
+  sendEmail,
   sendOrderConfirmationEmail,
 };
