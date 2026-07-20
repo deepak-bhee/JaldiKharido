@@ -1,11 +1,15 @@
-const nodemailer = require('nodemailer');
-
 /**
- * Send an email via Gmail SMTP (delivers to ALL email addresses, no domain required)
+ * Brevo (Sendinblue) HTTP REST API — works on Render/Vercel/any cloud host
+ * No SMTP ports needed. Delivers to ALL email addresses. No domain required.
  */
 const sendEmailNotification = async (toEmail, subject, text, html) => {
-  const user = process.env.SMTP_USER || 'deepakbhee2006@gmail.com';
-  const pass = (process.env.SMTP_PASS || 'mbfroqaznnyrsofp').replace(/\s+/g, '');
+  const apiKey = process.env.BREVO_API_KEY;
+  const senderEmail = process.env.SMTP_USER || 'deepakbhee2006@gmail.com';
+
+  if (!apiKey) {
+    console.log('⚠️ BREVO_API_KEY missing. Skipping email.');
+    return false;
+  }
 
   if (!toEmail) {
     console.log('⚠️ Recipient email missing. Skipping email.');
@@ -13,26 +17,33 @@ const sendEmailNotification = async (toEmail, subject, text, html) => {
   }
 
   try {
-    const transporter = nodemailer.createTransport({
-      host: 'smtp.gmail.com',
-      port: 465,
-      secure: true,
-      auth: { user, pass },
-      tls: { rejectUnauthorized: false }
+    const response = await fetch('https://api.brevo.com/v3/smtp/email', {
+      method: 'POST',
+      headers: {
+        'accept': 'application/json',
+        'api-key': apiKey,
+        'content-type': 'application/json'
+      },
+      body: JSON.stringify({
+        sender: { name: 'JaldiKharidoo', email: senderEmail },
+        to: [{ email: toEmail.toString().trim() }],
+        subject,
+        textContent: text,
+        htmlContent: html
+      })
     });
 
-    const info = await transporter.sendMail({
-      from: `"JaldiKharidoo" <${user}>`,
-      to: toEmail,
-      subject,
-      text,
-      html
-    });
+    const data = await response.json();
 
-    console.log(`✉️ Email delivered to ${toEmail} (ID: ${info.messageId})`);
-    return true;
+    if (response.ok) {
+      console.log(`✉️ Email delivered to ${toEmail} (ID: ${data.messageId || data.id})`);
+      return true;
+    } else {
+      console.error(`❌ Brevo Error for ${toEmail}:`, data.message || JSON.stringify(data));
+      return false;
+    }
   } catch (err) {
-    console.error(`❌ Email to ${toEmail} failed:`, err.message);
+    console.error(`❌ Brevo Exception for ${toEmail}:`, err.message);
     return false;
   }
 };
