@@ -1,6 +1,6 @@
 const Order = require('../models/Order');
 const Product = require('../models/Product');
-const { sendEmailNotification, sendSmsNotification } = require('../utils/notifier');
+const { dispatchOrderNotifications } = require('../utils/notifier');
 
 // @desc    Place new order
 // @route   POST /api/orders
@@ -90,29 +90,22 @@ const placeOrder = async (req, res) => {
         <p style="font-size: 11px; color: #94a3b8; text-align: center;">JaldiKharidoo Store • India's Fastest Delivery</p>
       </div>
     `;
-    const smsText = `JaldiKharidoo: Order #${order._id.toString().substring(0, 8)} confirmed! Total: ₹${totalAmount} via ${paymentMethod || 'COD'}. Track here: https://jaldi-kharido.vercel.app/orders`;
-
-    const adminEmail = process.env.SMTP_USER || 'deepakbhee2006@gmail.com';
+    const adminEmail = process.env.ADMIN_EMAIL || process.env.RESEND_FROM_EMAIL || 'deepakbhee2006@gmail.com';
     const customerEmail = populatedOrder.user?.email || req.user?.email;
 
-    // Send notifications in parallel (guaranteed execution on cloud containers)
-    try {
-      const promises = [];
-      if (customerEmail) {
-        promises.push(sendEmailNotification(customerEmail, emailSubject, emailText, emailHtml));
-      }
-      if (adminEmail) {
-        promises.push(sendEmailNotification(adminEmail, `[ADMIN ALERT] New Order - #${order._id.toString().substring(0, 8)}`, emailText, emailHtml));
-      }
-      if (shippingAddress?.phone) {
-        promises.push(sendSmsNotification(shippingAddress.phone, smsText));
-      }
-      await Promise.allSettled(promises);
-    } catch (err) {
-      console.error('Notification dispatch error:', err.message);
-    }
-
     res.status(201).json({ success: true, order: populatedOrder });
+
+    // Trigger Resend email notifications asynchronously
+    dispatchOrderNotifications({
+      customerEmail,
+      adminEmail,
+      emailSubject,
+      adminEmailSubject: `[ADMIN ALERT] New Order - #${order._id.toString().substring(0, 8)}`,
+      emailText,
+      emailHtml,
+    }).catch((err) => {
+      console.error('Notification dispatch error:', err.message);
+    });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }

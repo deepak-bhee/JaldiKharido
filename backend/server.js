@@ -1,9 +1,11 @@
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
+const path = require('path');
 const connectDB = require('./config/db');
+const { getNotificationStatus, logNotificationStatus } = require('./config/notifications');
 
-dotenv.config();
+dotenv.config({ path: path.join(__dirname, '.env') });
 
 // Connect to database
 connectDB();
@@ -30,7 +32,12 @@ app.use('/api/orders', require('./routes/orders'));
 
 // Health check
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'OK', message: 'E-Commerce API is running', timestamp: new Date() });
+  res.json({
+    status: 'OK',
+    message: 'E-Commerce API is running',
+    timestamp: new Date(),
+    notifications: getNotificationStatus(),
+  });
 });
 
 // 404 handler
@@ -50,5 +57,6 @@ app.use((err, req, res, next) => {
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`\n🚀 E-Commerce API running on http://localhost:${PORT}`);
-  console.log(`📦 Environment: ${process.env.NODE_ENV}`);
+  console.log(`📦 Environment: ${process.env.NODE_ENV || 'development'}`);
+  logNotificationStatus();
 });

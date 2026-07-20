@@ -29,10 +29,6 @@ const Checkout = () => {
       });
       clearCart();
       showToast('Order placed successfully! 🎉', 'success');
-      showSmsNotification(
-        address.phone,
-        `JaldiKharidoo: Your order of ${items.length} items has been placed successfully! Total: ${formatPrice(cartTotal)}. Method: ${paymentMethod || 'COD'}. Track here: https://jaldi-kharido.vercel.app/orders`
-      );
       navigate('/orders');
     } catch (err) {
       showToast(err.message, 'error');

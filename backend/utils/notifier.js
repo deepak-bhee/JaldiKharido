@@ -1,33 +1,10 @@
-const nodemailer = require('nodemailer');
-const twilio = require('twilio');
+// Resend Email Notification Utility (No SMTP / No SMS dependencies)
 
-// Create Nodemailer Transporter
-const createTransporter = () => {
-  const user = process.env.SMTP_USER || 'deepakbhee2006@gmail.com';
-  const pass = (process.env.SMTP_PASS || 'mbfroqaznnyrsofp').replace(/\s+/g, '');
-
-  return nodemailer.createTransport({
-    host: 'smtp.gmail.com',
-    port: 465,
-    secure: true,
-    pool: false, // Prevents socket reuse drops from Gmail
-    auth: {
-      user: user,
-      pass: pass,
-    },
-    tls: {
-      rejectUnauthorized: false // Allows cloud environments (Render/AWS) to pass TLS handshakes
-    }
-  });
-};
-
-// Send Email Notification
 const sendEmailNotification = async (toEmail, subject, text, html) => {
-  const user = process.env.SMTP_USER || 'deepakbhee2006@gmail.com';
-  const pass = (process.env.SMTP_PASS || 'mbfroqaznnyrsofp').replace(/\s+/g, '');
+  const apiKey = process.env.RESEND_API_KEY;
 
-  if (!user || !pass) {
-    console.log('⚠️ SMTP credentials not set. Skipping real Email dispatch.');
+  if (!apiKey) {
+    console.log('⚠️ RESEND_API_KEY not configured. Skipping email dispatch.');
     return false;
   }
 
@@ -36,64 +13,70 @@ const sendEmailNotification = async (toEmail, subject, text, html) => {
     return false;
   }
 
-  try {
-    const transporter = createTransporter();
-    const mailOptions = {
-      from: user,
-      to: toEmail,
-      subject,
-      text,
-    };
-    if (html) mailOptions.html = html;
-
-    const info = await transporter.sendMail(mailOptions);
-    console.log(`✉️ Email Notification sent to ${toEmail}: ${info.messageId}`);
-    return true;
-  } catch (err) {
-    console.error(`❌ Real Email sending to ${toEmail} failed:`, err.message);
-    return false;
-  }
-};
-
-// Send SMS Notification
-const sendSmsNotification = async (toPhone, message) => {
-  const sid = process.env.TWILIO_ACCOUNT_SID;
-  const token = process.env.TWILIO_AUTH_TOKEN;
-  const fromNum = process.env.TWILIO_PHONE_NUMBER;
-
-  if (!sid || !token || !fromNum) {
-    console.log('⚠️ Twilio parameters not set. Skipping real SMS dispatch.');
-    return false;
-  }
-
-  if (!toPhone) {
-    console.log('⚠️ Recipient phone missing. Skipping SMS send.');
-    return false;
-  }
-
-  // Format phone number to E.164 (+91 for 10-digit Indian numbers)
-  let formattedPhone = toPhone.toString().trim().replace(/[\s-]/g, '');
-  if (/^\d{10}$/.test(formattedPhone)) {
-    formattedPhone = `+91${formattedPhone}`;
-  } else if (/^0\d{10}$/.test(formattedPhone)) {
-    formattedPhone = `+91${formattedPhone.substring(1)}`;
-  } else if (!formattedPhone.startsWith('+')) {
-    formattedPhone = `+${formattedPhone}`;
-  }
+  // Resend default onboarding sender (or custom domain if configured)
+  const fromAddress = process.env.RESEND_FROM_EMAIL || 'JaldiKharidoo <onboarding@resend.dev>';
 
   try {
-    const client = twilio(sid, token);
-    const response = await client.messages.create({
-      body: message,
-      from: fromNum,
-      to: formattedPhone
+    const response = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        from: fromAddress,
+        to: [toEmail],
+        subject,
+        text,
+        html
+      })
     });
-    console.log(`📱 SMS Notification sent to ${formattedPhone}: SID ${response.sid}`);
-    return true;
+
+    const data = await response.json();
+
+    if (response.ok) {
+      console.log(`✉️ Resend Email sent to ${toEmail} (ID: ${data.id})`);
+      return true;
+    } else {
+      console.error(`❌ Resend Email to ${toEmail} failed:`, data.message || JSON.stringify(data));
+      return false;
+    }
   } catch (err) {
-    console.error(`❌ Real SMS sending to ${formattedPhone} failed:`, err.message);
+    console.error(`❌ Resend API request error:`, err.message);
     return false;
   }
 };
 
-module.exports = { sendEmailNotification, sendSmsNotification };
+const dispatchOrderNotifications = async ({
+  customerEmail,
+  adminEmail,
+  emailSubject,
+  adminEmailSubject,
+  emailText,
+  emailHtml,
+}) => {
+  const tasks = [];
+
+  if (customerEmail) {
+    tasks.push(sendEmailNotification(customerEmail, emailSubject, emailText, emailHtml));
+  }
+  if (adminEmail && adminEmail !== customerEmail) {
+    tasks.push(
+      sendEmailNotification(adminEmail, adminEmailSubject || emailSubject, emailText, emailHtml)
+    );
+  }
+
+  if (tasks.length === 0) {
+    console.log('⚠️ No email targets for this order.');
+    return;
+  }
+
+  const results = await Promise.allSettled(tasks);
+  const succeeded = results.filter((r) => r.status === 'fulfilled' && r.value === true).length;
+  console.log(`📬 Resend order notifications finished: ${succeeded}/${tasks.length} succeeded`);
+};
+
+module.exports = {
+  sendEmailNotification,
+  dispatchOrderNotifications,
+};
