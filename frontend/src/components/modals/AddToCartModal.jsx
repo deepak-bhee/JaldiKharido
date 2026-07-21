@@ -2,36 +2,40 @@ import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { formatPrice } from '../../api';
 
-const AddToCartModal = ({ item, cartSubtotal, cartCount, onClose }) => {
+const AddToCartModal = ({ item, cartSubtotal = 0, cartCount = 0, onClose }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
     if (!item) return;
     const timer = setTimeout(() => {
-      onClose();
+      if (onClose) onClose();
     }, 4000); // Auto close after 4 seconds
     return () => clearTimeout(timer);
-  }, [item?.id]);
+  }, [item?.id, onClose]);
 
   if (!item || !item.product) return null;
 
   const product = item.product;
   const quantity = item.quantity || 1;
+  const price = product.price || 0;
+  const name = product.name || 'Product';
+  const category = product.category || 'General';
+  const image = product.image || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&h=600&fit=crop';
 
   const handleCheckout = () => {
-    onClose();
+    if (onClose) onClose();
     navigate('/checkout');
   };
 
   const handleViewCart = () => {
-    onClose();
+    if (onClose) onClose();
     navigate('/cart');
   };
 
   return (
     <div className="fixed inset-0 z-[1300] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade">
       {/* Modal Card Container */}
-      <div className="bg-surface-secondary/95 border border-white/10 rounded-3xl max-w-md w-full p-5 sm:p-6 shadow-2xl relative overflow-hidden transition-all duration-300">
+      <div className="bg-surface-secondary border border-white/10 rounded-3xl max-w-md w-full p-5 sm:p-6 shadow-2xl relative overflow-hidden transition-all duration-300">
         
         {/* Close Button */}
         <button
@@ -57,14 +61,19 @@ const AddToCartModal = ({ item, cartSubtotal, cartCount, onClose }) => {
 
         {/* Item Info */}
         <div className="flex gap-3.5 items-center bg-white/[0.03] border border-white/10 rounded-2xl p-3 mb-4">
-          <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl bg-surface-secondary overflow-hidden border border-white/10 flex-shrink-0">
-            <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
+          <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl bg-surface overflow-hidden border border-white/10 flex-shrink-0">
+            <img
+              src={image}
+              alt={name}
+              className="w-full h-full object-cover"
+              onError={(e) => { e.target.onerror = null; e.target.src = 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&h=600&fit=crop'; }}
+            />
           </div>
           <div className="flex-1 min-w-0">
-            <span className="text-[10px] font-bold text-brand uppercase tracking-wider">{product.category}</span>
-            <h4 className="font-semibold text-white text-xs sm:text-sm line-clamp-1">{product.name}</h4>
+            <span className="text-[10px] font-bold text-brand uppercase tracking-wider">{category}</span>
+            <h4 className="font-semibold text-white text-xs sm:text-sm line-clamp-1">{name}</h4>
             <div className="flex items-center gap-2 mt-1">
-              <span className="text-brand font-black text-sm">{formatPrice(product.price)}</span>
+              <span className="text-brand font-black text-sm">{formatPrice(price)}</span>
               <span className="text-[11px] text-slate-400 bg-white/5 px-2 py-0.5 rounded border border-white/10">
                 Qty: <strong className="text-white">{quantity}</strong>
               </span>

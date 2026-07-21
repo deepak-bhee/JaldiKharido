@@ -14,8 +14,10 @@ export const apiFetch = async (endpoint, options = {}) => {
   return data;
 };
 
-export const formatPrice = (n) =>
-  new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(n);
+export const formatPrice = (n) => {
+  const num = Number(n) || 0;
+  return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(num);
+};
 
 export const stars = (rating = 0) => {
   const full = Math.floor(rating);
