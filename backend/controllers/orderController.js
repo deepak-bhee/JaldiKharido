@@ -154,15 +154,17 @@ const updateOrderStatus = async (req, res) => {
     const customerEmail = populatedOrder.user?.email;
 
     if (customerEmail) {
-      sendOrderStatusUpdateEmail({
-        order: populatedOrder,
-        customerEmail,
-        status
-      }).then(res => {
-        console.log(`📧 Status update (${status}) email to ${customerEmail}: ${res ? '✅ DELIVERED' : '❌ FAILED'}`);
-      }).catch(err => {
-        console.error('📧 Status update email exception:', err.message);
-      });
+      console.log(`📧 Dispatching status update (${status}) email to ${customerEmail}...`);
+      try {
+        const sent = await sendOrderStatusUpdateEmail({
+          order: populatedOrder,
+          customerEmail,
+          status
+        });
+        console.log(`📧 Status update (${status}) email to ${customerEmail}: ${sent ? '✅ DELIVERED' : '❌ FAILED'}`);
+      } catch (emailErr) {
+        console.error('📧 Status update email exception:', emailErr.message);
+      }
     }
 
     res.json({ success: true, order: populatedOrder });
