@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, Fragment } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import ProductCard from '../components/ProductCard';
 import { apiFetch } from '../api';
@@ -39,10 +39,13 @@ const Catalog = () => {
       if (q)           params.append('search', q);
       if (cat !== 'All') params.append('category', cat);
       const data = await apiFetch(`/products?${params}`);
-      setProducts(data.products);
-      setTotal(data.total);
-      setPages(data.pages);
+      setProducts(data.products || []);
+      setTotal(data.total || 0);
+      setPages(data.pages || 1);
       setPage(pg);
+    } catch (err) {
+      console.error('Failed to load products:', err);
+      setProducts([]);
     } finally {
       setLoading(false);
     }
@@ -82,17 +85,17 @@ const Catalog = () => {
         {Array.from({ length: pages }, (_, i) => i + 1)
           .filter(p => p === 1 || p === pages || Math.abs(p - page) <= 2)
           .map((p, idx, arr) => (
-            <>
+            <Fragment key={p}>
               {idx > 0 && arr[idx - 1] !== p - 1 && (
-                <span key={`e${p}`} className="px-3 py-1.5 text-slate-600">…</span>
+                <span className="px-3 py-1.5 text-slate-600">…</span>
               )}
-              <button key={p} onClick={() => load(p)}
+              <button onClick={() => load(p)}
                 className={`px-3 py-1.5 rounded-lg text-sm border transition-all ${p === page
                   ? 'bg-brand border-brand text-white'
                   : 'glass border-white/10 hover:border-brand/40'}`}>
                 {p}
               </button>
-            </>
+            </Fragment>
           ))}
         {page < pages && (
           <button onClick={() => load(page + 1)}
