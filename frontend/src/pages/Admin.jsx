@@ -49,7 +49,7 @@ const Admin = () => {
         method: 'PUT',
         body: JSON.stringify({ status })
       });
-      showToast('Order status updated', 'success');
+      showToast(`Status updated to ${status.toUpperCase()} ✉️ Email sent to customer!`, 'success');
       setOrders(orders.map(o => o._id === orderId ? { ...o, status } : o));
     } catch (err) {
       showToast(err.message, 'error');
