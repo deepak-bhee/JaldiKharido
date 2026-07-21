@@ -1,17 +1,8 @@
-import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { formatPrice } from '../../api';
 
 const OrderSuccessModal = ({ order, onClose }) => {
   const navigate = useNavigate();
-
-  useEffect(() => {
-    if (!order) return null;
-    const timer = setTimeout(() => {
-      onClose();
-    }, 6000); // Auto close after 6 seconds
-    return () => clearTimeout(timer);
-  }, [order, onClose]);
 
   if (!order) return null;
 
