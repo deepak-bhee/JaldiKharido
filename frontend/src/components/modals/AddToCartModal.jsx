@@ -1,8 +1,17 @@
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { formatPrice } from '../../api';
 
 const AddToCartModal = ({ item, cartSubtotal, cartCount, onClose }) => {
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!item) return;
+    const timer = setTimeout(() => {
+      onClose();
+    }, 4000); // Auto close after 4 seconds
+    return () => clearTimeout(timer);
+  }, [item, onClose]);
 
   if (!item || !item.product) return null;
 

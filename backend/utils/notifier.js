@@ -4,7 +4,7 @@
  */
 const sendEmailNotification = async (toEmail, subject, text, html) => {
   const apiKey = process.env.RESEND_API_KEY;
-  const fromEmail = process.env.RESEND_FROM_EMAIL || 'JaldiKharidoo <onboarding@resend.dev>';
+  const fromEmail = process.env.RESEND_FROM_EMAIL || 'JaldiKharidoo <orders@jaldikharidoo.in>';
 
   if (!apiKey) {
     console.log('⚠️ RESEND_API_KEY is missing in environment. Skipping email.');
@@ -114,4 +114,61 @@ const sendOrderConfirmationEmail = async ({ order, customerEmail, adminEmail }) 
   return results.some(r => r.status === 'fulfilled' && r.value === true);
 };
 
-module.exports = { sendEmailNotification, sendOrderConfirmationEmail };
+/**
+ * Send order status update email (Shipped / Delivered / Processing / Cancelled)
+ */
+const sendOrderStatusUpdateEmail = async ({ order, customerEmail, status }) => {
+  const orderId = order._id.toString();
+  const shortId = orderId.substring(0, 8);
+  const customerName = order.user?.name || 'Valued Customer';
+  const siteUrl = process.env.FRONTEND_URL || 'https://jaldikharidoo.in';
+
+  let subject = `Order #${shortId} Status Update — JaldiKharidoo ⚡`;
+  let statusHeader = `Order Update`;
+  let statusMessage = `Your order status has been updated to <strong>${status}</strong>.`;
+  let bannerBg = `#f8fafc`;
+  let borderColor = `#3b82f6`;
+
+  if (status === 'shipped') {
+    subject = `🚚 Your Order #${shortId} Has Been Shipped! — JaldiKharidoo`;
+    statusHeader = `Package Out for Delivery! 🚚`;
+    statusMessage = `Great news <strong>${customerName}</strong>! Your order #${shortId} has been shipped and is on its way to your delivery address.`;
+    bannerBg = `#eff6ff`;
+    borderColor = `#3b82f6`;
+  } else if (status === 'delivered') {
+    subject = `🎉 Your Order #${shortId} Has Been Delivered! — JaldiKharidoo`;
+    statusHeader = `Package Delivered! 🎉`;
+    statusMessage = `Hi <strong>${customerName}</strong>, your package for order #${shortId} has been successfully delivered. We hope you love your purchase!`;
+    bannerBg = `#f0fdf4`;
+    borderColor = `#22c55e`;
+  } else if (status === 'cancelled') {
+    subject = `🚫 Order #${shortId} Cancelled — JaldiKharidoo`;
+    statusHeader = `Order Cancelled 🚫`;
+    statusMessage = `Hi <strong>${customerName}</strong>, order #${shortId} has been cancelled as requested.`;
+    bannerBg = `#fef2f2`;
+    borderColor = `#ef4444`;
+  }
+
+  const text = `Hi ${customerName},\n\n${statusHeader}\n${statusMessage}\n\nTrack your order status anytime at ${siteUrl}/orders\n\nThank you for shopping with JaldiKharidoo!`;
+
+  const html = `
+    <div style="font-family:'Segoe UI',sans-serif;max-width:600px;margin:0 auto;padding:24px;border:1px solid #e2e8f0;border-radius:16px;background:#fff;color:#1e293b;">
+      <div style="text-align:center;margin-bottom:24px;">
+        <h1 style="color:#f97316;margin:0;font-size:26px;font-weight:800;">JaldiKharidoo ⚡</h1>
+        <p style="color:#64748b;margin-top:4px;font-size:14px;">India's Fastest Delivery</p>
+      </div>
+      <div style="background:${bannerBg};border-left:4px solid ${borderColor};padding:16px;border-radius:8px;margin-bottom:24px;">
+        <h2 style="color:#1e293b;margin:0 0 6px;font-size:18px;">${statusHeader}</h2>
+        <p style="margin:0;font-size:14px;color:#475569;">${statusMessage}</p>
+      </div>
+      <div style="text-align:center;margin-top:24px;border-top:1px solid #f1f5f9;padding-top:16px;">
+        <a href="${siteUrl}/orders" style="display:inline-block;background:#f97316;color:#fff;font-weight:700;text-decoration:none;padding:12px 28px;border-radius:10px;font-size:14px;">View My Orders</a>
+        <p style="font-size:11px;color:#94a3b8;margin-top:16px;">JaldiKharidoo Store • Thank you for shopping with us!</p>
+      </div>
+    </div>
+  `;
+
+  return await sendEmailNotification(customerEmail, subject, text, html);
+};
+
+module.exports = { sendEmailNotification, sendOrderConfirmationEmail, sendOrderStatusUpdateEmail };
