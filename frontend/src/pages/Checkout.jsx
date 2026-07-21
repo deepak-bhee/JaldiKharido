@@ -23,13 +23,13 @@ const Checkout = () => {
     setLoading(true);
     try {
       const orderItems = items.map(i => ({ product: i.product || i._id || i.id, quantity: i.quantity }));
-      await apiFetch('/orders', {
+      const data = await apiFetch('/orders', {
         method: 'POST',
         body: JSON.stringify({ items: orderItems, shippingAddress: address, paymentMethod })
       });
       clearCart();
       showToast('Order placed successfully! 🎉', 'success');
-      navigate('/orders');
+      navigate('/orders', { state: { justPlaced: true, order: data.order } });
     } catch (err) {
       showToast(err.message, 'error');
     } finally {

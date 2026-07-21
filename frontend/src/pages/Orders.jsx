@@ -82,6 +82,9 @@ const Orders = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const { showToast } = useToast();
+  const location = useLocation();
+
+  const isJustPlaced = location.state?.justPlaced;
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -125,6 +128,38 @@ const Orders = () => {
   return (
     <div className="min-h-screen bg-surface py-12">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        {/* Celebration Banner when an order was just placed */}
+        {isJustPlaced && (
+          <div className="glass border-2 border-brand/40 rounded-3xl p-6 sm:p-10 mb-10 text-center relative overflow-hidden shadow-2xl animate-celebration-glow">
+            {/* Background Glow & Floating Confetti Emojis */}
+            <div className="absolute inset-0 bg-gradient-to-r from-orange-500/10 via-amber-500/10 to-indigo-500/10 pointer-events-none" />
+            <div className="absolute top-2 left-6 text-2xl animate-confetti-1">🎉</div>
+            <div className="absolute top-4 right-10 text-2xl animate-confetti-2">✨</div>
+            <div className="absolute bottom-3 left-12 text-2xl animate-confetti-3">🚀</div>
+            <div className="absolute bottom-4 right-8 text-2xl animate-confetti-1">🥳</div>
+
+            <div className="relative z-10 space-y-3">
+              <div className="w-16 h-16 sm:w-20 sm:h-20 mx-auto rounded-full bg-gradient-btn text-white flex items-center justify-center text-3xl sm:text-4xl shadow-glow animate-festive-bounce">
+                🎉
+              </div>
+              
+              <h2 className="font-display font-black text-2xl sm:text-4xl tracking-tight text-white">
+                Order Confirmed! Woohoo! 🥳
+              </h2>
+              
+              <p className="text-slate-300 text-sm sm:text-base max-w-lg mx-auto leading-relaxed">
+                Thank you for shopping with <span className="gradient-text font-bold">JaldiKharidoo</span>! We've received your order and our team is already packing it up for express delivery.
+              </p>
+
+              <div className="inline-flex items-center gap-2 bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 px-4 py-2 rounded-full text-xs font-semibold mt-2">
+                <span>✉️</span>
+                <span>Confirmation email dispatched via <strong>jaldikharidoo.in</strong></span>
+              </div>
+            </div>
+          </div>
+        )}
+
         <h1 className="font-display font-black text-3xl text-white mb-8">My Orders</h1>
         {orders.length === 0 ? (
           <div className="glass border border-white/10 rounded-2xl p-12 text-center animate-fade">

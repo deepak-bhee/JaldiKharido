@@ -208,4 +208,27 @@ html[data-magicui-theme-vt="active"]::view-transition-group(root) {
   animation-duration: var(--magicui-theme-toggle-vt-duration);
 }
 
+/* ── Celebration Confetti Animations ────────────────── */
+@keyframes confettiFall {
+  0% { transform: translateY(-20px) rotate(0deg) scale(0.8); opacity: 0; }
+  20% { opacity: 1; }
+  100% { transform: translateY(120px) rotate(360deg) scale(1.1); opacity: 0; }
+}
+
+@keyframes festiveBounce {
+  0%, 100% { transform: scale(1) translateY(0); }
+  50% { transform: scale(1.1) translateY(-6px); }
+}
+
+@keyframes celebrationPulse {
+  0%, 100% { box-shadow: 0 0 25px rgba(249, 115, 22, 0.4); }
+  50% { box-shadow: 0 0 45px rgba(249, 115, 22, 0.7); }
+}
+
+.animate-confetti-1 { animation: confettiFall 2.5s ease-in-out infinite; }
+.animate-confetti-2 { animation: confettiFall 3.2s ease-in-out 0.4s infinite; }
+.animate-confetti-3 { animation: confettiFall 2.8s ease-in-out 0.8s infinite; }
+.animate-festive-bounce { animation: festiveBounce 2s ease-in-out infinite; }
+.animate-celebration-glow { animation: celebrationPulse 2.5s ease-in-out infinite; }
+
 

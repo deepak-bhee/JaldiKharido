@@ -50,17 +50,23 @@ const AddedToCart = () => {
       <div className="max-w-4xl mx-auto space-y-8">
         
         {/* Added Confirmation Card */}
-        <div className="glass border border-emerald-500/30 rounded-3xl p-6 sm:p-8 shadow-2xl relative overflow-hidden">
-          {/* Top subtle glow */}
+        <div className="glass border-2 border-emerald-500/30 rounded-3xl p-6 sm:p-8 shadow-2xl relative overflow-hidden animate-celebration-glow">
+          {/* Top subtle glow & floating confetti */}
           <div className="absolute -top-24 left-1/2 -translate-x-1/2 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute top-2 left-6 text-xl animate-confetti-1">🎉</div>
+          <div className="absolute top-4 right-8 text-xl animate-confetti-2">✨</div>
+          <div className="absolute bottom-2 left-10 text-xl animate-confetti-3">🛍️</div>
 
-          <div className="flex items-center gap-3 mb-6 pb-4 border-b border-white/10">
-            <div className="w-10 h-10 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center text-xl font-bold">
+          <div className="flex items-center gap-3.5 mb-6 pb-4 border-b border-white/10 relative z-10">
+            <div className="w-12 h-12 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center text-2xl font-bold shadow-lg animate-festive-bounce">
               ✓
             </div>
             <div>
-              <h1 className="text-xl sm:text-2xl font-bold text-white leading-tight">Added to Cart Successfully!</h1>
-              <p className="text-xs text-slate-400">Item is safely waiting in your shopping bag</p>
+              <h1 className="text-xl sm:text-2xl font-black text-white leading-tight flex items-center gap-2">
+                <span>Added to Cart!</span>
+                <span className="text-base">🛍️✨</span>
+              </h1>
+              <p className="text-xs text-slate-300">Great choice! Item is safely saved in your cart</p>
             </div>
           </div>
 
