@@ -13,6 +13,8 @@ const Navbar = () => {
   const navigate  = useNavigate();
   const [open, setOpen]       = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+  const profileRef = useRef(null);
 
   // Magic Search States
   const [searchQuery, setSearchQuery] = useState('');
@@ -50,20 +52,22 @@ const Navbar = () => {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  // Close drawer and search on route change
+  // Close drawers & dropdowns on route change
   useEffect(() => {
     setOpen(false);
     setShowSuggestions(false);
-    setSearchQuery('');
+    setProfileMenuOpen(false);
   }, [location.pathname]);
 
-  // Click outside to close recommendations (both desktop & mobile containers)
+  // Click outside listener for search & profile menu
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      const clickedDesktop = searchContainerRef.current && searchContainerRef.current.contains(event.target);
-      const clickedMobile = mobileSearchContainerRef.current && mobileSearchContainerRef.current.contains(event.target);
-      if (!clickedDesktop && !clickedMobile) {
+    const handleClickOutside = (e) => {
+      if (searchContainerRef.current && !searchContainerRef.current.contains(e.target) &&
+          mobileSearchContainerRef.current && !mobileSearchContainerRef.current.contains(e.target)) {
         setShowSuggestions(false);
+      }
+      if (profileRef.current && !profileRef.current.contains(e.target)) {
+        setProfileMenuOpen(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -297,22 +301,84 @@ const Navbar = () => {
               )}
 
               {isLoggedIn() ? (
-                <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-full pl-1.5 pr-3 py-1 transition-all hover:border-white/20">
-                  <div className="w-7 h-7 rounded-full bg-gradient-btn text-white flex items-center justify-center font-bold text-xs shadow-sm">
-                    {user?.name?.charAt(0).toUpperCase()}
-                  </div>
-                  <span className="text-xs font-semibold text-white tracking-wide">
-                    {user?.name?.split(' ')[0]}
-                  </span>
+                <div ref={profileRef} className="relative">
+                  {/* Profile Avatar Icon */}
                   <button
-                    onClick={handleLogout}
-                    title="Logout"
-                    className="ml-1 text-slate-400 hover:text-red-400 transition-colors p-1"
+                    onClick={() => setProfileMenuOpen(o => !o)}
+                    className="flex items-center gap-2 p-1 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 transition-all focus:outline-none focus:ring-2 focus:ring-brand/40"
+                    aria-label="User menu"
                   >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                    </svg>
+                    <div className="w-8 h-8 rounded-full bg-gradient-btn text-white flex items-center justify-center font-bold text-sm shadow-md">
+                      {user?.name?.charAt(0).toUpperCase()}
+                    </div>
                   </button>
+
+                  {/* Profile Dropdown Menu */}
+                  {profileMenuOpen && (
+                    <div className="absolute right-0 mt-3 w-64 bg-surface-secondary/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl p-4 z-[1200] animate-fade">
+                      {/* User Info Header */}
+                      <div className="flex items-center gap-3 pb-3 mb-3 border-b border-white/10">
+                        <div className="w-10 h-10 rounded-full bg-gradient-btn text-white flex items-center justify-center font-bold text-base shadow-sm">
+                          {user?.name?.charAt(0).toUpperCase()}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="font-bold text-white text-sm truncate">{user?.name}</div>
+                          <div className="text-xs text-slate-400 truncate">{user?.email}</div>
+                          <span className={`inline-block mt-1 px-2 py-0.5 text-[9px] font-bold rounded-full border uppercase tracking-wider ${
+                            isAdmin() ? 'bg-purple-500/20 border-purple-500/30 text-purple-300' : 'bg-brand/20 border-brand/30 text-brand'
+                          }`}>
+                            {isAdmin() ? '⚙️ Admin' : '👤 Customer'}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Navigation Links */}
+                      <div className="space-y-1 text-sm font-medium">
+                        {isAdmin() ? (
+                          <Link
+                            to="/admin"
+                            onClick={() => setProfileMenuOpen(false)}
+                            className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-slate-300 hover:text-white hover:bg-white/5 transition-colors"
+                          >
+                            ⚙️ Admin Dashboard
+                          </Link>
+                        ) : (
+                          <>
+                            <Link
+                              to="/orders"
+                              onClick={() => setProfileMenuOpen(false)}
+                              className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-slate-300 hover:text-white hover:bg-white/5 transition-colors"
+                            >
+                              📦 My Orders
+                            </Link>
+                            <Link
+                              to="/cart"
+                              onClick={() => setProfileMenuOpen(false)}
+                              className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-slate-300 hover:text-white hover:bg-white/5 transition-colors"
+                            >
+                              🛒 My Cart ({cartCount})
+                            </Link>
+                          </>
+                        )}
+                      </div>
+
+                      {/* Logout Button */}
+                      <div className="mt-3 pt-3 border-t border-white/10">
+                        <button
+                          onClick={() => {
+                            setProfileMenuOpen(false);
+                            handleLogout();
+                          }}
+                          className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold text-red-400 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 transition-all"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                          </svg>
+                          Logout
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               ) : (
                 <Link
