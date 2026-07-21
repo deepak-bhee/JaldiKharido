@@ -1,4 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react';
+import AddToCartModal from '../components/modals/AddToCartModal';
+import OrderSuccessModal from '../components/modals/OrderSuccessModal';
 
 const CartContext = createContext(null);
 
@@ -8,6 +10,9 @@ export const CartProvider = ({ children }) => {
   const [items, setItems] = useState(() => {
     try { return JSON.parse(localStorage.getItem(CART_KEY)) || []; } catch { return []; }
   });
+
+  const [addedModalItem, setAddedModalItem] = useState(null);
+  const [orderSuccessModal, setOrderSuccessModal] = useState(null);
 
   useEffect(() => {
     localStorage.setItem(CART_KEY, JSON.stringify(items));
@@ -32,6 +37,13 @@ export const CartProvider = ({ children }) => {
         quantity: qty,
       }];
     });
+
+    // Pop up Add-To-Cart Modal over current page
+    setAddedModalItem({ product, quantity: qty });
+  };
+
+  const showOrderSuccessModal = (order) => {
+    setOrderSuccessModal(order);
   };
 
   const removeFromCart = (productId) =>
@@ -55,8 +67,22 @@ export const CartProvider = ({ children }) => {
     <CartContext.Provider value={{
       items, addToCart, removeFromCart, updateQty, clearCart,
       cartCount, cartSubtotal, shipping, cartTotal,
+      showOrderSuccessModal,
     }}>
       {children}
+
+      {/* Pop-up Modals rendered globally over current page */}
+      <AddToCartModal
+        item={addedModalItem}
+        cartSubtotal={cartSubtotal}
+        cartCount={cartCount}
+        onClose={() => setAddedModalItem(null)}
+      />
+
+      <OrderSuccessModal
+        order={orderSuccessModal}
+        onClose={() => setOrderSuccessModal(null)}
+      />
     </CartContext.Provider>
   );
 };

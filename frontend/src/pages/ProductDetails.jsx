@@ -57,10 +57,7 @@ const ProductDetails = () => {
       setTimeout(() => navigate('/login'), 900);
       return;
     }
-    for (let i = 0; i < qty; i++) {
-      addToCart(product);
-    }
-    navigate('/added-to-cart', { state: { product, quantity: qty } });
+    addToCart(product, qty);
   };
 
   const starsEl = (rating = 0) => {

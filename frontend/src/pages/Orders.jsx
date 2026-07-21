@@ -210,8 +210,8 @@ const Orders = () => {
 
                 {/* Items list */}
                 <div className="space-y-3 mt-4">
-                  {order.items.map(item => (
-                    <div key={item.product._id || item.product} className="flex gap-4 items-center p-2 rounded-xl bg-white/[0.02] hover:bg-white/[0.04] transition-colors">
+                  {(order.items || []).map((item, idx) => (
+                    <div key={item._id || idx} className="flex gap-4 items-center p-2 rounded-xl bg-white/[0.02] hover:bg-white/[0.04] transition-colors">
                       <div className="w-12 h-12 rounded-lg bg-surface-secondary overflow-hidden border border-white/5">
                         <img src={item.image || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&h=600&fit=crop'} alt={item.name} className="w-full h-full object-cover" onError={(e) => { e.target.onerror = null; e.target.src = 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&h=600&fit=crop'; }} />
                       </div>

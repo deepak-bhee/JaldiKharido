@@ -27,8 +27,7 @@ const ProductCard = ({ product: p }) => {
       setTimeout(() => navigate('/login'), 900);
       return;
     }
-    addToCart(p);
-    navigate('/added-to-cart', { state: { product: p, quantity: 1 } });
+    addToCart(p, 1);
   };
 
   return (

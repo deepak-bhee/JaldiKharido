@@ -5,8 +5,8 @@ import { useToast } from '../context/ToastContext';
 import { apiFetch, formatPrice } from '../api';
 
 const Checkout = () => {
-  const { items, cartTotal, clearCart } = useCart();
-  const { showToast, showSmsNotification } = useToast();
+  const { items, cartTotal, clearCart, showOrderSuccessModal } = useCart();
+  const { showToast } = useToast();
   const navigate = useNavigate();
 
   const [loading, setLoading] = useState(false);
@@ -29,7 +29,7 @@ const Checkout = () => {
       });
       clearCart();
       showToast('Order placed successfully! 🎉', 'success');
-      navigate('/orders', { state: { justPlaced: true, order: data.order } });
+      showOrderSuccessModal(data.order || { _id: 'JUST_PLACED', totalAmount: cartTotal, paymentMethod });
     } catch (err) {
       showToast(err.message, 'error');
     } finally {
