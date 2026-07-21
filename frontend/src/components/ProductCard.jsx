@@ -28,7 +28,7 @@ const ProductCard = ({ product: p }) => {
       return;
     }
     addToCart(p);
-    showToast(`${p.name.substring(0, 28)}… added! 🛒`, 'success');
+    navigate('/added-to-cart', { state: { product: p, quantity: 1 } });
   };
 
   return (

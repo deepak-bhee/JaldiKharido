@@ -60,7 +60,7 @@ const ProductDetails = () => {
     for (let i = 0; i < qty; i++) {
       addToCart(product);
     }
-    showToast(`${qty} × ${product.name.substring(0, 20)}… added to cart! 🛒`, 'success');
+    navigate('/added-to-cart', { state: { product, quantity: qty } });
   };
 
   const starsEl = (rating = 0) => {

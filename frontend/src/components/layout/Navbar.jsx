@@ -297,23 +297,28 @@ const Navbar = () => {
               )}
 
               {isLoggedIn() ? (
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-slate-400 hidden lg:block">
-                    Hi, {user?.name?.split(' ')[0]}
+                <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-full pl-1.5 pr-3 py-1 transition-all hover:border-white/20">
+                  <div className="w-7 h-7 rounded-full bg-gradient-btn text-white flex items-center justify-center font-bold text-xs shadow-sm">
+                    {user?.name?.charAt(0).toUpperCase()}
+                  </div>
+                  <span className="text-xs font-semibold text-white tracking-wide">
+                    {user?.name?.split(' ')[0]}
                   </span>
                   <button
                     onClick={handleLogout}
-                    className="px-4 py-1.5 text-sm font-medium text-slate-400 border border-white/10
-                      rounded-lg hover:border-red-500/50 hover:text-red-400 transition-all"
+                    title="Logout"
+                    className="ml-1 text-slate-400 hover:text-red-400 transition-colors p-1"
                   >
-                    Logout
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    </svg>
                   </button>
                 </div>
               ) : (
                 <Link
                   to="/login"
                   className="px-4 py-1.5 text-sm font-semibold bg-gradient-btn text-white
-                    rounded-lg hover:shadow-glow transition-all"
+                    rounded-xl hover:shadow-glow transition-all"
                 >
                   Sign In
                 </Link>

@@ -12,6 +12,7 @@ import Catalog from './pages/Catalog';
 import ProductDetails from './pages/ProductDetails';
 import Login from './pages/Login';
 import Cart from './pages/Cart';
+import AddedToCart from './pages/AddedToCart';
 import Checkout from './pages/Checkout';
 import Orders from './pages/Orders';
 import Admin from './pages/Admin';
@@ -33,6 +34,7 @@ const App = () => {
                   <Route path="/product/:id" element={<ProductDetails />} />
                   <Route path="/login" element={<Login />} />
                   <Route path="/cart" element={<Cart />} />
+                  <Route path="/added-to-cart" element={<AddedToCart />} />
                   
                   {/* Protected Routes */}
                   <Route path="/checkout" element={<ProtectedRoute><Checkout /></ProtectedRoute>} />

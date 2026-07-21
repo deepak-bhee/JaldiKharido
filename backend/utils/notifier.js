@@ -97,7 +97,7 @@ const sendOrderConfirmationEmail = async ({ order, customerEmail, adminEmail }) 
         </div>
       </div>
       <div style="text-align:center;margin-top:24px;border-top:1px solid #f1f5f9;padding-top:16px;">
-        <a href="https://jaldi-kharido.vercel.app/orders" style="display:inline-block;background:#f97316;color:#fff;font-weight:700;text-decoration:none;padding:12px 28px;border-radius:10px;font-size:14px;">Track Your Order</a>
+        <a href="${process.env.FRONTEND_URL || 'https://jaldikharidoo.in'}/orders" style="display:inline-block;background:#f97316;color:#fff;font-weight:700;text-decoration:none;padding:12px 28px;border-radius:10px;font-size:14px;">Track Your Order</a>
         <p style="font-size:11px;color:#94a3b8;margin-top:16px;">JaldiKharidoo Store • Thank you for shopping with us!</p>
       </div>
     </div>
