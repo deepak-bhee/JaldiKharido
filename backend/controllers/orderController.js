@@ -1,5 +1,6 @@
 const Order = require('../models/Order');
 const Product = require('../models/Product');
+const User = require('../models/User');
 const { sendOrderConfirmationEmail, sendOrderStatusUpdateEmail } = require('../utils/notifier');
 
 // @desc    Place new order
@@ -150,11 +151,20 @@ const updateOrderStatus = async (req, res) => {
     }
     await order.save();
 
-    const populatedOrder = await Order.findById(order._id).populate('user', 'name email');
-    const customerEmail = populatedOrder.user?.email;
+    let populatedOrder = await Order.findById(order._id).populate('user', 'name email');
+    let customerEmail = populatedOrder?.user?.email;
+
+    if (!customerEmail && order.user) {
+      const u = await User.findById(order.user);
+      if (u && u.email) {
+        customerEmail = u.email;
+        if (!populatedOrder.user) populatedOrder.user = u;
+      }
+    }
+
+    console.log(`📧 Status update for Order #${order._id.toString().slice(-8)} -> ${status} (Customer Email: ${customerEmail || 'NOT FOUND'})`);
 
     if (customerEmail) {
-      console.log(`📧 Dispatching status update (${status}) email to ${customerEmail}...`);
       try {
         const sent = await sendOrderStatusUpdateEmail({
           order: populatedOrder,
@@ -165,9 +175,11 @@ const updateOrderStatus = async (req, res) => {
       } catch (emailErr) {
         console.error('📧 Status update email exception:', emailErr.message);
       }
+    } else {
+      console.warn(`⚠️ Cannot send status update email: No email found for order #${order._id}`);
     }
 
-    res.json({ success: true, order: populatedOrder });
+    res.json({ success: true, order: populatedOrder, emailSent: Boolean(customerEmail) });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
