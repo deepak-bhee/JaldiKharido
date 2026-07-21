@@ -39,7 +39,7 @@ export const CartProvider = ({ children }) => {
     });
 
     // Pop up Add-To-Cart Modal over current page
-    setAddedModalItem({ product, quantity: qty });
+    setAddedModalItem({ product, quantity: qty, id: Date.now() });
   };
 
   const showOrderSuccessModal = (order) => {

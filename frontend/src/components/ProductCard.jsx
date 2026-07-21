@@ -22,11 +22,6 @@ const ProductCard = ({ product: p }) => {
   };
 
   const handleAdd = () => {
-    if (!isLoggedIn()) {
-      showToast('Please sign in to add items to cart', 'warning');
-      setTimeout(() => navigate('/login'), 900);
-      return;
-    }
     addToCart(p, 1);
   };
 

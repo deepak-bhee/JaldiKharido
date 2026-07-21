@@ -11,7 +11,7 @@ const AddToCartModal = ({ item, cartSubtotal, cartCount, onClose }) => {
       onClose();
     }, 4000); // Auto close after 4 seconds
     return () => clearTimeout(timer);
-  }, [item, onClose]);
+  }, [item?.id]);
 
   if (!item || !item.product) return null;
 
