@@ -1,5 +1,4 @@
 import { useEffect, useRef } from 'react';
-import { gsap } from 'gsap';
 import './DecayCard.css';
 
 const DecayCard = ({
@@ -13,7 +12,6 @@ const DecayCard = ({
   movementBound = 50,
   children
 }) => {
-  const wrapperRef = useRef(null);
   const svgRef = useRef(null);
   const displacementMapRef = useRef(null);
   const cursor = useRef({ x: window.innerWidth / 2, y: window.innerHeight / 2 });
@@ -36,6 +34,7 @@ const DecayCard = ({
     window.addEventListener('mousemove', handleMouseMove);
 
     const imgValues = { imgTransforms: { x: 0, y: 0, rz: 0 }, displacementScale: 0 };
+    let rafId;
 
     const render = () => {
       let targetX = lerp(imgValues.imgTransforms.x, map(cursor.current.x, 0, winsize.current.width, -120, 120), 0.1);
@@ -52,11 +51,7 @@ const DecayCard = ({
       imgValues.imgTransforms.rz = targetRz;
 
       if (svgRef.current) {
-        gsap.set(svgRef.current, {
-          x: imgValues.imgTransforms.x,
-          y: imgValues.imgTransforms.y,
-          rotateZ: imgValues.imgTransforms.rz
-        });
+        svgRef.current.style.transform = `translate3d(${targetX}px, ${targetY}px, 0px) rotate(${targetRz}deg)`;
       }
 
       const cursorTravelledDistance = distance(
@@ -70,37 +65,32 @@ const DecayCard = ({
       );
 
       if (displacementMapRef.current) {
-        gsap.set(displacementMapRef.current, { attr: { scale: imgValues.displacementScale } });
+        displacementMapRef.current.setAttribute('scale', imgValues.displacementScale);
       }
 
       cachedCursor.current = { ...cursor.current };
       rafId = requestAnimationFrame(render);
     };
 
-    let rafId = requestAnimationFrame(render);
+    rafId = requestAnimationFrame(render);
 
     return () => {
-      cancelAnimationFrame(rafId);
+      if (rafId) cancelAnimationFrame(rafId);
       window.removeEventListener('resize', handleResize);
       window.removeEventListener('mousemove', handleMouseMove);
     };
   }, [maxDisplacement, movementBound]);
 
-  // Unique filter ID per instance to avoid conflicts when multiple cards exist
   const filterId = `imgFilter-${seed}-${Math.round(baseFrequency * 10000)}`;
 
   return (
     <div className="decay-wrapper" style={{ width: `${width}px`, height: `${height}px` }}>
-      {/* Glow halo behind card */}
       <div className="decay-glow" />
-
-      {/* Corner accent dots */}
       <div className="decay-corner tl" />
       <div className="decay-corner tr" />
       <div className="decay-corner bl" />
       <div className="decay-corner br" />
 
-      {/* Main content with GSAP transform */}
       <div className="decay-content" style={{ width: `${width}px`, height: `${height}px` }} ref={svgRef}>
         <svg viewBox="-60 -75 720 900" preserveAspectRatio="xMidYMid slice" className="decay-svg">
           <defs>
@@ -134,13 +124,8 @@ const DecayCard = ({
           </g>
         </svg>
 
-        {/* Vignette for depth */}
         <div className="decay-vignette" />
-
-        {/* Scanlines for retro glitch feel */}
         <div className="decay-scanlines" />
-
-        {/* Children text overlay */}
         {children && <div className="decay-card-text">{children}</div>}
       </div>
     </div>
