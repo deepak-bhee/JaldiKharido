@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, Fragment } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import ProductCard from '../components/ProductCard';
+import CurvedInput from '../components/CurvedInput';
 import { apiFetch } from '../api';
 
 const CATEGORIES = ['All','Electronics','Clothing','Books','Home & Garden','Sports','Beauty'];
@@ -121,19 +122,27 @@ const Catalog = () => {
       <div className="sticky top-16 z-30 bg-surface/95 backdrop-blur-xl border-b border-white/[0.04]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
           <div className="flex flex-col sm:flex-row gap-3">
-            {/* Search */}
-            <div className="relative flex-1">
-              <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600"
-                fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <circle cx="11" cy="11" r="8"/><path strokeLinecap="round" strokeLinejoin="round" d="m21 21-4.35-4.35"/>
-              </svg>
-              <input
-                type="text"
+            {/* Search - CurvedInput */}
+            <div className="flex-1">
+              <CurvedInput
                 placeholder="Search products…"
+                buttonText="Search"
+                theme="dark"
+                bend={0}
+                height={46}
+                type="text"
+                backgroundColor="rgba(255,255,255,0.05)"
+                borderColor="rgba(255,255,255,0.15)"
+                buttonColor="#f97316"
+                buttonTextColor="#ffffff"
+                placeholderColor="#52525b"
+                textColor="#f1f5f9"
+                shadowSize="none"
+                cornerRadius={14}
+                fontSize={14}
                 value={search}
-                onChange={e => handleSearch(e.target.value)}
-                className="w-full bg-white/5 border border-white/10 rounded-xl pl-9 pr-4 py-2 text-sm
-                  text-white placeholder-slate-600 focus:outline-none focus:border-brand/50 transition"
+                onChange={handleSearch}
+                onSubmit={handleSearch}
               />
             </div>
             {/* Sort */}

@@ -1,6 +1,98 @@
+.decay-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
 .decay-content {
   position: relative;
   will-change: transform;
+  transition: transform 0.4s ease;
+}
+
+/* Glow ring behind the card */
+.decay-glow {
+  position: absolute;
+  inset: -8px;
+  border-radius: 1.5rem;
+  background: radial-gradient(ellipse at center, rgba(249,115,22,0.35) 0%, transparent 70%);
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  pointer-events: none;
+  z-index: -1;
+  filter: blur(12px);
+}
+
+.decay-wrapper:hover .decay-glow {
+  opacity: 1;
+  animation: decay-pulse 2s ease-in-out infinite;
+}
+
+@keyframes decay-pulse {
+  0%, 100% { transform: scale(1);   opacity: 0.7; }
+  50%       { transform: scale(1.06); opacity: 1; }
+}
+
+/* Scanlines overlay for a cool retro/glitch vibe */
+.decay-scanlines {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 3px,
+    rgba(0,0,0,0.08) 3px,
+    rgba(0,0,0,0.08) 4px
+  );
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 5;
+  mix-blend-mode: multiply;
+}
+
+.decay-wrapper:hover .decay-scanlines {
+  opacity: 1;
+}
+
+/* Edge vignette for depth */
+.decay-vignette {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.6) 100%);
+  pointer-events: none;
+  z-index: 4;
+}
+
+/* Corner accent glow dots */
+.decay-corner {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(249,115,22,0.9);
+  box-shadow: 0 0 8px 2px rgba(249,115,22,0.6);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 6;
+}
+.decay-corner.tl { top: 8px; left: 8px; }
+.decay-corner.tr { top: 8px; right: 8px; }
+.decay-corner.bl { bottom: 8px; left: 8px; }
+.decay-corner.br { bottom: 8px; right: 8px; }
+
+.decay-wrapper:hover .decay-corner {
+  opacity: 1;
+  animation: decay-blink 1.5s step-end infinite;
+}
+.decay-wrapper:hover .decay-corner.tr { animation-delay: 0.3s; }
+.decay-wrapper:hover .decay-corner.bl { animation-delay: 0.6s; }
+.decay-wrapper:hover .decay-corner.br { animation-delay: 0.9s; }
+
+@keyframes decay-blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.2; }
 }
 
 .decay-svg {
@@ -20,6 +112,7 @@
   font-size: 2rem;
   line-height: 1.4em;
   color: white;
-  text-shadow: 0 2px 20px rgba(0,0,0,0.8);
+  text-shadow: 0 2px 20px rgba(0,0,0,0.9), 0 0 30px rgba(249,115,22,0.4);
   pointer-events: none;
+  z-index: 10;
 }

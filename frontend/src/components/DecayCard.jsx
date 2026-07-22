@@ -13,6 +13,7 @@ const DecayCard = ({
   movementBound = 50,
   children
 }) => {
+  const wrapperRef = useRef(null);
   const svgRef = useRef(null);
   const displacementMapRef = useRef(null);
   const cursor = useRef({ x: window.innerWidth / 2, y: window.innerHeight / 2 });
@@ -22,16 +23,11 @@ const DecayCard = ({
   useEffect(() => {
     const lerp = (a, b, n) => (1 - n) * a + n * b;
     const map = (x, a, b, c, d) => ((x - a) * (d - c)) / (b - a) + c;
-    const distance = (x1, x2, y1, y2) => {
-      const a = x1 - x2;
-      const b = y1 - y2;
-      return Math.hypot(a, b);
-    };
+    const distance = (x1, x2, y1, y2) => Math.hypot(x1 - x2, y1 - y2);
 
     const handleResize = () => {
       winsize.current = { width: window.innerWidth, height: window.innerHeight };
     };
-
     const handleMouseMove = ev => {
       cursor.current = { x: ev.clientX, y: ev.clientY };
     };
@@ -39,10 +35,7 @@ const DecayCard = ({
     window.addEventListener('resize', handleResize);
     window.addEventListener('mousemove', handleMouseMove);
 
-    const imgValues = {
-      imgTransforms: { x: 0, y: 0, rz: 0 },
-      displacementScale: 0
-    };
+    const imgValues = { imgTransforms: { x: 0, y: 0, rz: 0 }, displacementScale: 0 };
 
     const render = () => {
       let targetX = lerp(imgValues.imgTransforms.x, map(cursor.current.x, 0, winsize.current.width, -120, 120), 0.1);
@@ -67,10 +60,8 @@ const DecayCard = ({
       }
 
       const cursorTravelledDistance = distance(
-        cachedCursor.current.x,
-        cursor.current.x,
-        cachedCursor.current.y,
-        cursor.current.y
+        cachedCursor.current.x, cursor.current.x,
+        cachedCursor.current.y, cursor.current.y
       );
       imgValues.displacementScale = lerp(
         imgValues.displacementScale,
@@ -95,55 +86,63 @@ const DecayCard = ({
     };
   }, [maxDisplacement, movementBound]);
 
+  // Unique filter ID per instance to avoid conflicts when multiple cards exist
+  const filterId = `imgFilter-${seed}-${Math.round(baseFrequency * 10000)}`;
+
   return (
-    <div
-      className="decay-content"
-      style={{ width: `${width}px`, height: `${height}px` }}
-      ref={svgRef}
-    >
-      <svg viewBox="-60 -75 720 900" preserveAspectRatio="xMidYMid slice" className="decay-svg">
-        <defs>
-          <filter id="imgFilter">
-            <feTurbulence
-              type="turbulence"
-              baseFrequency={baseFrequency}
-              numOctaves={numOctaves}
-              seed={seed}
-              stitchTiles="stitch"
-              x="0%"
-              y="0%"
-              width="100%"
-              height="100%"
-              result="turbulence1"
+    <div className="decay-wrapper" style={{ width: `${width}px`, height: `${height}px` }}>
+      {/* Glow halo behind card */}
+      <div className="decay-glow" />
+
+      {/* Corner accent dots */}
+      <div className="decay-corner tl" />
+      <div className="decay-corner tr" />
+      <div className="decay-corner bl" />
+      <div className="decay-corner br" />
+
+      {/* Main content with GSAP transform */}
+      <div className="decay-content" style={{ width: `${width}px`, height: `${height}px` }} ref={svgRef}>
+        <svg viewBox="-60 -75 720 900" preserveAspectRatio="xMidYMid slice" className="decay-svg">
+          <defs>
+            <filter id={filterId}>
+              <feTurbulence
+                type="turbulence"
+                baseFrequency={baseFrequency}
+                numOctaves={numOctaves}
+                seed={seed}
+                stitchTiles="stitch"
+                x="0%" y="0%" width="100%" height="100%"
+                result="turbulence1"
+              />
+              <feDisplacementMap
+                ref={displacementMapRef}
+                in="SourceGraphic" in2="turbulence1"
+                scale="0"
+                xChannelSelector="R" yChannelSelector="B"
+                x="0%" y="0%" width="100%" height="100%"
+                result="displacementMap3"
+              />
+            </filter>
+          </defs>
+          <g>
+            <image
+              href={image}
+              x="0" y="0" width="600" height="750"
+              filter={`url(#${filterId})`}
+              preserveAspectRatio="xMidYMid slice"
             />
-            <feDisplacementMap
-              ref={displacementMapRef}
-              in="SourceGraphic"
-              in2="turbulence1"
-              scale="0"
-              xChannelSelector="R"
-              yChannelSelector="B"
-              x="0%"
-              y="0%"
-              width="100%"
-              height="100%"
-              result="displacementMap3"
-            />
-          </filter>
-        </defs>
-        <g>
-          <image
-            href={image}
-            x="0"
-            y="0"
-            width="600"
-            height="750"
-            filter="url(#imgFilter)"
-            preserveAspectRatio="xMidYMid slice"
-          />
-        </g>
-      </svg>
-      <div className="decay-card-text">{children}</div>
+          </g>
+        </svg>
+
+        {/* Vignette for depth */}
+        <div className="decay-vignette" />
+
+        {/* Scanlines for retro glitch feel */}
+        <div className="decay-scanlines" />
+
+        {/* Children text overlay */}
+        {children && <div className="decay-card-text">{children}</div>}
+      </div>
     </div>
   );
 };

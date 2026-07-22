@@ -5,6 +5,7 @@ import MarqueeStrip from '../components/MarqueeStrip';
 import CategoryGrid from '../components/CategoryGrid';
 import ProductCard from '../components/ProductCard';
 import FeaturesSection from '../components/FeaturesSection';
+import DecayCategorySection from '../components/DecayCategorySection';
 import { apiFetch } from '../api';
 
 const SkeletonCard = () => (
@@ -80,6 +81,7 @@ const Home = () => {
       </section>
 
       <FeaturesSection />
+      <DecayCategorySection />
     </div>
   );
 };
