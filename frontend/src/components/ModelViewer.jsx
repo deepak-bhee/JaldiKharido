@@ -1,8 +1,8 @@
 /* eslint-disable react/no-unknown-property */
 import { Suspense, useRef, useLayoutEffect, useEffect, useMemo } from 'react';
 import { Canvas, useFrame, useThree, invalidate } from '@react-three/fiber';
-import { OrbitControls, useGLTF, useProgress, Html, Environment, ContactShadows } from '@react-three/drei';
-import * as THREE from 'three';
+import { OrbitControls, useGLTF, useProgress, Html, ContactShadows } from '@react-three/drei';
+import { Vector3, Box3, Sphere, MathUtils, ACESFilmicToneMapping, SRGBColorSpace } from 'three';
 
 const isTouch = typeof window !== 'undefined' && ('ontouchstart' in window || navigator.maxTouchPoints > 0);
 const deg2rad = d => (d * Math.PI) / 180;
@@ -64,12 +64,12 @@ const ModelInner = ({
   const gltfData = useGLTF(url);
   const content = useMemo(() => gltfData.scene.clone(), [gltfData.scene]);
 
-  const pivotW = useRef(new THREE.Vector3());
+  const pivotW = useRef(new Vector3());
   useLayoutEffect(() => {
     if (!content) return;
     const g = inner.current;
     g.updateWorldMatrix(true, true);
-    const sphere = new THREE.Box3().setFromObject(g).getBoundingSphere(new THREE.Sphere());
+    const sphere = new Box3().setFromObject(g).getBoundingSphere(new Sphere());
     const s = 1 / (sphere.radius * 2);
     g.position.set(-sphere.center.x, -sphere.center.y, -sphere.center.z);
     g.scale.setScalar(s);
@@ -165,7 +165,7 @@ const ModelInner = ({
         e.preventDefault();
         const [p1, p2] = [...pts.values()];
         const d = Math.hypot(p1.x - p2.x, p1.y - p2.y); const ratio = startDist / d;
-        camera.position.z = THREE.MathUtils.clamp(startZ * ratio, minZoom, maxZoom); invalidate();
+        camera.position.z = MathUtils.clamp(startZ * ratio, minZoom, maxZoom); invalidate();
       }
     };
     const up = e => {
@@ -259,7 +259,7 @@ const ModelViewer = ({
   autoRotateSpeed = 0.35,
   onModelLoaded
 }) => {
-  const pivot = useRef(new THREE.Vector3()).current;
+  const pivot = useRef(new Vector3()).current;
   const contactRef = useRef(null);
   const rendererRef = useRef(null);
   const sceneRef = useRef(null);
@@ -308,8 +308,8 @@ const ModelViewer = ({
         gl={{ preserveDrawingBuffer: true }}
         onCreated={({ gl, scene, camera }) => {
           rendererRef.current = gl; sceneRef.current = scene; cameraRef.current = camera;
-          gl.toneMapping = THREE.ACESFilmicToneMapping;
-          gl.outputColorSpace = THREE.SRGBColorSpace;
+          if (ACESFilmicToneMapping) gl.toneMapping = ACESFilmicToneMapping;
+          if (SRGBColorSpace) gl.outputColorSpace = SRGBColorSpace;
         }}
         camera={{ fov: 50, position: [0, 0, camZ], near: 0.01, far: 100 }}
         style={{ touchAction: 'pan-y pinch-zoom' }}
