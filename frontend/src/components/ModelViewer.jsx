@@ -1,7 +1,6 @@
 /* eslint-disable react/no-unknown-property */
-import { Suspense, useRef, useLayoutEffect, useEffect, useMemo } from 'react';
+import { Suspense, useRef, useLayoutEffect, useEffect } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { OrbitControls, useGLTF, useProgress, Html, ContactShadows } from '@react-three/drei';
 import { Vector3, Box3, Sphere, MathUtils } from 'three';
 
 const isTouch = typeof window !== 'undefined' && ('ontouchstart' in window || navigator.maxTouchPoints > 0);
@@ -14,7 +13,7 @@ const PARALLAX_EASE = 0.12;
 const HOVER_MAG = deg2rad(6);
 const HOVER_EASE = 0.15;
 
-// === PROCEDURAL 3D MODELS (0 KB, 100% Reliable, Immune to AdBlockers) ===
+// === PROCEDURAL 3D MODELS (0 KB, 100% Reliable, 0 External Dependencies) ===
 const ProceduralHeadphones = () => (
   <group scale={1.15}>
     <mesh position={[0, 0.4, 0]}>
@@ -98,43 +97,8 @@ const ProceduralCyberGem = () => (
   </group>
 );
 
-const Loader = ({ placeholderSrc }) => {
-  const { progress, active } = useProgress();
-  if (!active && placeholderSrc) return null;
-  return (
-    <Html center>
-      <div style={{ color: '#f97316', fontWeight: 700, fontSize: 13, background: 'rgba(0,0,0,0.75)', padding: '6px 12px', borderRadius: 20, whiteSpace: 'nowrap', border: '1px solid rgba(249,115,22,0.3)' }}>
-        ⚡ Loading 3D {Math.round(progress)}%
-      </div>
-    </Html>
-  );
-};
-
-const DesktopControls = ({ pivot, min, max, zoomEnabled }) => {
-  const ref = useRef(null);
-  useFrame(() => ref.current?.target.copy(pivot));
-  return (
-    <OrbitControls
-      ref={ref}
-      makeDefault
-      enablePan={false}
-      enableRotate={false}
-      enableZoom={zoomEnabled}
-      minDistance={min}
-      maxDistance={max}
-    />
-  );
-};
-
-const GLTFContent = ({ url }) => {
-  const gltfData = useGLTF(url);
-  const content = useMemo(() => (gltfData?.scene ? gltfData.scene.clone() : null), [gltfData]);
-  if (!content) return null;
-  return <primitive object={content} />;
-};
-
 const ModelInner = ({
-  url, modelType, xOff, yOff, pivot, initYaw, initPitch, minZoom, maxZoom,
+  modelType, xOff, yOff, pivot, initYaw, initPitch, minZoom, maxZoom,
   enableMouseParallax, enableManualRotation, enableHoverRotation, enableManualZoom,
   autoFrame, fadeIn, autoRotate, autoRotateSpeed, onLoaded
 }) => {
@@ -161,7 +125,7 @@ const ModelInner = ({
     pivot.copy(pivotW.current);
     outer.current.rotation.set(initPitch, initYaw, 0);
     onLoaded?.();
-  }, [modelType, url]);
+  }, [modelType]);
 
   useEffect(() => {
     if (!enableManualRotation || isTouch) return;
@@ -276,10 +240,8 @@ const ModelInner = ({
         {modelType === 'headphones' && <ProceduralHeadphones />}
         {modelType === 'watch' && <ProceduralSmartWatch />}
         {modelType === 'gem' && <ProceduralCyberGem />}
-        {!modelType && url && (
-          <Suspense fallback={<ProceduralCyberGem />}>
-            <GLTFContent url={url} />
-          </Suspense>
+        {(!modelType || (modelType !== 'headphones' && modelType !== 'watch' && modelType !== 'gem')) && (
+          <ProceduralCyberGem />
         )}
       </group>
     </group>
@@ -287,7 +249,6 @@ const ModelInner = ({
 };
 
 const ModelViewer = ({
-  url,
   modelType = 'headphones',
   width = 400,
   height = 400,
@@ -307,7 +268,6 @@ const ModelViewer = ({
   fillLightIntensity = 0.6,
   rimLightIntensity = 0.8,
   autoFrame = false,
-  placeholderSrc,
   showScreenshotButton = false,
   fadeIn = true,
   autoRotate = false,
@@ -315,7 +275,6 @@ const ModelViewer = ({
   onModelLoaded
 }) => {
   const pivot = useRef(new Vector3()).current;
-  const contactRef = useRef(null);
   const rendererRef = useRef(null);
   const sceneRef = useRef(null);
   const cameraRef = useRef(null);
@@ -327,19 +286,10 @@ const ModelViewer = ({
   const capture = () => {
     const g = rendererRef.current, s = sceneRef.current, c = cameraRef.current;
     if (!g || !s || !c) return;
-    g.shadowMap.enabled = false;
-    const tmp = [];
-    s.traverse(o => {
-      if (o.isLight && 'castShadow' in o) { tmp.push({ l: o, cast: o.castShadow }); o.castShadow = false; }
-    });
-    if (contactRef.current) contactRef.current.visible = false;
     g.render(s, c);
     const urlPNG = g.domElement.toDataURL('image/png');
     const a = document.createElement('a');
     a.download = 'model.png'; a.href = urlPNG; a.click();
-    g.shadowMap.enabled = true;
-    tmp.forEach(({ l, cast }) => (l.castShadow = cast));
-    if (contactRef.current) contactRef.current.visible = true;
   };
 
   return (
@@ -373,10 +323,16 @@ const ModelViewer = ({
         <directionalLight position={[5, 5, 5]} intensity={keyLightIntensity} castShadow />
         <directionalLight position={[-5, 2, 5]} intensity={fillLightIntensity} />
         <directionalLight position={[0, 4, -5]} intensity={rimLightIntensity} />
-        <ContactShadows ref={contactRef} position={[0, -0.5, 0]} opacity={0.35} scale={10} blur={2} />
-        <Suspense fallback={<Loader placeholderSrc={placeholderSrc} />}>
+        
+        {/* Floor Shadow Disc */}
+        <mesh position={[0, -0.6, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+          <planeGeometry args={[2.5, 2.5]} />
+          <meshBasicMaterial transparent opacity={0.35} depthWrite={false} color="#000000" />
+        </mesh>
+
+        <Suspense fallback={null}>
           <ModelInner
-            url={url} modelType={modelType} xOff={modelXOffset} yOff={modelYOffset} pivot={pivot}
+            modelType={modelType} xOff={modelXOffset} yOff={modelYOffset} pivot={pivot}
             initYaw={initYaw} initPitch={initPitch} minZoom={minZoomDistance} maxZoom={maxZoomDistance}
             enableMouseParallax={enableMouseParallax} enableManualRotation={enableManualRotation}
             enableHoverRotation={enableHoverRotation} enableManualZoom={enableManualZoom}
@@ -384,9 +340,6 @@ const ModelViewer = ({
             autoRotateSpeed={autoRotateSpeed} onLoaded={onModelLoaded}
           />
         </Suspense>
-        {!isTouch && (
-          <DesktopControls pivot={pivot} min={minZoomDistance} max={maxZoomDistance} zoomEnabled={enableManualZoom} />
-        )}
       </Canvas>
     </div>
   );
