@@ -3,18 +3,20 @@ import { Component, Suspense, lazy, useState } from 'react';
 // Lazy-load so Three.js doesn't bloat the initial bundle
 const ModelViewer = lazy(() => import('./ModelViewer'));
 
-// Safety net: if 3D crashes, show a fallback instead of blanking the page
+// Safety net: if 3D crashes in an unsupported browser, show a clean message
 class ErrorBoundary extends Component {
-  constructor(props) { super(props); this.state = { error: null }; }
-  static getDerivedStateFromError(error) { return { error }; }
+  constructor(props) { super(props); this.state = { hasError: false }; }
+  static getDerivedStateFromError() { return { hasError: true }; }
+  componentDidCatch(error) { console.error('ModelViewer 3D error:', error); }
   render() {
-    if (this.state.error) {
+    if (this.state.hasError) {
       return (
         <div className="flex items-center justify-center rounded-3xl glass border border-white/10 text-center p-12"
-          style={{ minHeight: 300 }}>
+          style={{ width: 400, height: 400 }}>
           <div>
             <div className="text-4xl mb-3">🌐</div>
-            <div className="text-slate-400 text-sm">3D viewer unavailable in this browser</div>
+            <div className="text-slate-300 text-sm font-semibold mb-1">WebGL 3D Mode</div>
+            <div className="text-slate-500 text-xs">WebGL is initializing or unavailable on this device</div>
           </div>
         </div>
       );
@@ -25,39 +27,36 @@ class ErrorBoundary extends Component {
 
 const SHOWCASE_MODELS = [
   {
-    name: 'Toy Car',
-    label: 'Electronics',
-    url: 'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/main/2.0/ToyCar/glTF-Binary/ToyCar.glb',
+    name: 'Duck',
+    label: 'Toys & Collectibles',
+    url: 'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/main/2.0/Duck/glTF-Binary/Duck.glb',
     autoRotate: true,
     autoRotateSpeed: 0.5,
-    environmentPreset: 'city',
-    defaultZoom: 0.55,
-    defaultRotationX: -30,
+    defaultZoom: 0.6,
+    defaultRotationX: -20,
     defaultRotationY: 15,
     description: 'Drag to rotate • Scroll to zoom'
   },
   {
-    name: 'Avocado',
-    label: 'Organic Foods',
-    url: 'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/main/2.0/Avocado/glTF-Binary/Avocado.glb',
+    name: 'Fox',
+    label: 'Wild Life',
+    url: 'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/main/2.0/Fox/glTF-Binary/Fox.glb',
     autoRotate: true,
     autoRotateSpeed: 0.4,
-    environmentPreset: 'forest',
-    defaultZoom: 0.6,
-    defaultRotationX: -20,
-    defaultRotationY: 10,
+    defaultZoom: 0.7,
+    defaultRotationX: -30,
+    defaultRotationY: 20,
     description: 'Drag to rotate • Scroll to zoom'
   },
   {
-    name: 'Helmet',
-    label: 'Sports',
-    url: 'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/main/2.0/DamagedHelmet/glTF-Binary/DamagedHelmet.glb',
+    name: 'Toy Car',
+    label: 'Electronics',
+    url: 'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/main/2.0/ToyCar/glTF-Binary/ToyCar.glb',
     autoRotate: true,
-    autoRotateSpeed: 0.3,
-    environmentPreset: 'warehouse',
-    defaultZoom: 0.7,
-    defaultRotationX: -40,
-    defaultRotationY: 20,
+    autoRotateSpeed: 0.35,
+    defaultZoom: 0.55,
+    defaultRotationX: -30,
+    defaultRotationY: 15,
     description: 'Drag to rotate • Scroll to zoom'
   }
 ];
@@ -110,39 +109,38 @@ const ModelShowcase3D = () => {
             <div className="absolute inset-0 rounded-3xl bg-brand/10 blur-xl" />
             <div className="relative glass border border-white/10 rounded-3xl overflow-hidden"
               style={{ boxShadow: '0 0 60px rgba(249,115,22,0.12), 0 25px 50px rgba(0,0,0,0.5)' }}>
-              <ErrorBoundary>
-              <Suspense fallback={
-                <div className="flex items-center justify-center bg-black/30"
-                  style={{ width: 400, height: 400 }}>
-                  <div className="text-center">
-                    <div className="text-4xl mb-3 animate-spin">⚙️</div>
-                    <div className="text-brand text-sm font-semibold">Loading 3D Model…</div>
+              <ErrorBoundary key={active.name}>
+                <Suspense fallback={
+                  <div className="flex items-center justify-center bg-black/30"
+                    style={{ width: 400, height: 400 }}>
+                    <div className="text-center">
+                      <div className="text-4xl mb-3 animate-spin">⚙️</div>
+                      <div className="text-brand text-sm font-semibold">Loading 3D Model…</div>
+                    </div>
                   </div>
-                </div>
-              }>
-                <ModelViewer
-                  key={active.url}
-                  url={active.url}
-                  width={400}
-                  height={400}
-                  autoRotate={active.autoRotate}
-                  autoRotateSpeed={active.autoRotateSpeed}
-                  environmentPreset={active.environmentPreset}
-                  defaultZoom={active.defaultZoom}
-                  defaultRotationX={active.defaultRotationX}
-                  defaultRotationY={active.defaultRotationY}
-                  fadeIn={true}
-                  showScreenshotButton={true}
-                  enableMouseParallax={true}
-                  enableHoverRotation={true}
-                  enableManualRotation={true}
-                  enableManualZoom={true}
-                  ambientIntensity={0.4}
-                  keyLightIntensity={1.2}
-                  fillLightIntensity={0.6}
-                  rimLightIntensity={1.0}
-                />
-              </Suspense>
+                }>
+                  <ModelViewer
+                    key={active.url}
+                    url={active.url}
+                    width={400}
+                    height={400}
+                    autoRotate={active.autoRotate}
+                    autoRotateSpeed={active.autoRotateSpeed}
+                    defaultZoom={active.defaultZoom}
+                    defaultRotationX={active.defaultRotationX}
+                    defaultRotationY={active.defaultRotationY}
+                    fadeIn={true}
+                    showScreenshotButton={true}
+                    enableMouseParallax={true}
+                    enableHoverRotation={true}
+                    enableManualRotation={true}
+                    enableManualZoom={true}
+                    ambientIntensity={0.5}
+                    keyLightIntensity={1.2}
+                    fillLightIntensity={0.6}
+                    rimLightIntensity={1.0}
+                  />
+                </Suspense>
               </ErrorBoundary>
             </div>
             {/* Hint label */}

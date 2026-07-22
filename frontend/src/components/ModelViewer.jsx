@@ -247,11 +247,10 @@ const ModelViewer = ({
   enableManualRotation = true,
   enableHoverRotation = true,
   enableManualZoom = true,
-  ambientIntensity = 0.3,
-  keyLightIntensity = 1,
-  fillLightIntensity = 0.5,
+  ambientIntensity = 0.5,
+  keyLightIntensity = 1.2,
+  fillLightIntensity = 0.6,
   rimLightIntensity = 0.8,
-  environmentPreset = 'forest',
   autoFrame = false,
   placeholderSrc,
   showScreenshotButton = false,
@@ -260,7 +259,6 @@ const ModelViewer = ({
   autoRotateSpeed = 0.35,
   onModelLoaded
 }) => {
-  useEffect(() => void useGLTF.preload(url), [url]);
   const pivot = useRef(new THREE.Vector3()).current;
   const contactRef = useRef(null);
   const rendererRef = useRef(null);
@@ -316,7 +314,7 @@ const ModelViewer = ({
         camera={{ fov: 50, position: [0, 0, camZ], near: 0.01, far: 100 }}
         style={{ touchAction: 'pan-y pinch-zoom' }}
       >
-        {environmentPreset !== 'none' && <Environment preset={environmentPreset} background={false} />}
+        <hemisphereLight skyColor="#ffffff" groundColor="#332211" intensity={0.7} />
         <ambientLight intensity={ambientIntensity} />
         <directionalLight position={[5, 5, 5]} intensity={keyLightIntensity} castShadow />
         <directionalLight position={[-5, 2, 5]} intensity={fillLightIntensity} />
