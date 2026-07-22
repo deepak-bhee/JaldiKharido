@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
+import DecayCard from './DecayCard';
 
 const HeroSection = () => {
   const canvasRef = useRef(null);
@@ -108,53 +109,52 @@ const HeroSection = () => {
             </div>
           </div>
 
-          {/* Right — Showcase cards */}
+          {/* Right — DecayCard Showcase */}
           <div className="hidden lg:flex justify-center items-center">
-            <div className="relative w-80 h-[420px]">
-              {/* Main card */}
-              <div className="absolute left-0 top-0 w-64 glass border border-white/10 rounded-2xl
-                overflow-hidden shadow-glow animate-float">
-                <div className="h-40 overflow-hidden">
-                  <img
-                    src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=240&fit=crop"
-                    alt="Headphones"
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                <div className="p-4">
-                  <div className="text-xs text-brand font-semibold mb-1">Electronics</div>
-                  <div className="font-bold text-white text-sm">Sony WH-1000XM5</div>
-                  <div className="text-slate-400 text-xs">Noise Cancelling Headphones</div>
-                  <div className="flex items-center justify-between mt-3">
-                    <span className="text-brand font-bold">₹24,990</span>
-                    <span className="text-xs text-green-400 font-semibold">In Stock</span>
-                  </div>
-                </div>
+            <div className="relative flex items-center justify-center gap-4">
+              {/* Left stacked card (slightly rotated back) */}
+              <div
+                style={{ transform: 'rotate(-8deg) translateX(-20px) scale(0.85)', transformOrigin: 'center bottom', filter: 'brightness(0.6)', zIndex: 1, pointerEvents: 'none' }}
+              >
+                <DecayCard
+                  width={200}
+                  height={280}
+                  image="https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&h=560&fit=crop"
+                  baseFrequency={0.018}
+                  maxDisplacement={250}
+                  movementBound={30}
+                  seed={7}
+                />
               </div>
-              {/* Mini cards */}
-              <div className="absolute right-0 top-16 glass border border-white/10 rounded-xl
-                p-3 flex items-center gap-3 w-44 animate-float" style={{ animationDelay: '0.5s' }}>
-                <img src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=60&h=60&fit=crop"
-                  className="w-10 h-10 rounded-lg object-cover" alt="shoe" />
-                <div>
-                  <div className="text-xs text-slate-500">Clothing</div>
-                  <div className="text-xs font-bold text-white">From ₹499</div>
-                </div>
+              {/* Center main DecayCard */}
+              <div style={{ zIndex: 10, borderRadius: '1rem', overflow: 'hidden', boxShadow: '0 0 60px rgba(249,115,22,0.25)' }}>
+                <DecayCard
+                  width={240}
+                  height={320}
+                  image="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=480&h=640&fit=crop"
+                  baseFrequency={0.015}
+                  maxDisplacement={400}
+                  movementBound={50}
+                  seed={4}
+                >
+                  <span style={{ fontSize: '1.1rem', lineHeight: 1.3, fontWeight: 900, color: 'white', textShadow: '0 2px 12px rgba(0,0,0,0.9)' }}>
+                    Shop<br />Now ⚡
+                  </span>
+                </DecayCard>
               </div>
-              <div className="absolute right-0 bottom-16 glass border border-white/10 rounded-xl
-                p-3 flex items-center gap-3 w-44 animate-float" style={{ animationDelay: '1s' }}>
-                <img src="https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=60&h=60&fit=crop"
-                  className="w-10 h-10 rounded-lg object-cover" alt="book" />
-                <div>
-                  <div className="text-xs text-slate-500">Books</div>
-                  <div className="text-xs font-bold text-white">From ₹149</div>
-                </div>
-              </div>
-              {/* Stats badge */}
-              <div className="absolute left-4 bottom-4 glass border border-green-500/20 rounded-xl p-3">
-                <div className="text-xs text-slate-500 mb-0.5">Happy Customers</div>
-                <div className="text-lg font-black gradient-text">50K+</div>
-                <div className="flex gap-0.5 mt-0.5">{'⭐⭐⭐⭐⭐'.split('').map((s,i)=><span key={i} className="text-xs">{s}</span>)}</div>
+              {/* Right stacked card (slightly rotated back) */}
+              <div
+                style={{ transform: 'rotate(8deg) translateX(20px) scale(0.85)', transformOrigin: 'center bottom', filter: 'brightness(0.6)', zIndex: 1, pointerEvents: 'none' }}
+              >
+                <DecayCard
+                  width={200}
+                  height={280}
+                  image="https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=400&h=560&fit=crop"
+                  baseFrequency={0.012}
+                  maxDisplacement={200}
+                  movementBound={25}
+                  seed={12}
+                />
               </div>
             </div>
           </div>
