@@ -14,18 +14,98 @@ const PARALLAX_EASE = 0.12;
 const HOVER_MAG = deg2rad(6);
 const HOVER_EASE = 0.15;
 
+// === PROCEDURAL 3D MODELS (0 KB, 100% Reliable, Immune to AdBlockers) ===
+const ProceduralHeadphones = () => (
+  <group scale={1.15}>
+    <mesh position={[0, 0.4, 0]}>
+      <torusGeometry args={[0.8, 0.08, 16, 32, Math.PI]} />
+      <meshStandardMaterial color="#1e293b" metalness={0.8} roughness={0.2} />
+    </mesh>
+    <group position={[-0.8, 0, 0]}>
+      <mesh rotation={[0, 0, Math.PI / 2]}>
+        <cylinderGeometry args={[0.45, 0.45, 0.25, 32]} />
+        <meshStandardMaterial color="#0f172a" metalness={0.9} roughness={0.1} />
+      </mesh>
+      <mesh rotation={[0, 0, Math.PI / 2]} position={[-0.13, 0, 0]}>
+        <torusGeometry args={[0.42, 0.03, 16, 32]} />
+        <meshStandardMaterial color="#f97316" emissive="#f97316" emissiveIntensity={2} />
+      </mesh>
+      <mesh rotation={[0, 0, Math.PI / 2]} position={[0.1, 0, 0]}>
+        <torusGeometry args={[0.35, 0.1, 16, 32]} />
+        <meshStandardMaterial color="#334155" roughness={0.8} />
+      </mesh>
+    </group>
+    <group position={[0.8, 0, 0]}>
+      <mesh rotation={[0, 0, Math.PI / 2]}>
+        <cylinderGeometry args={[0.45, 0.45, 0.25, 32]} />
+        <meshStandardMaterial color="#0f172a" metalness={0.9} roughness={0.1} />
+      </mesh>
+      <mesh rotation={[0, 0, Math.PI / 2]} position={[0.13, 0, 0]}>
+        <torusGeometry args={[0.42, 0.03, 16, 32]} />
+        <meshStandardMaterial color="#f97316" emissive="#f97316" emissiveIntensity={2} />
+      </mesh>
+      <mesh rotation={[0, 0, Math.PI / 2]} position={[-0.1, 0, 0]}>
+        <torusGeometry args={[0.35, 0.1, 16, 32]} />
+        <meshStandardMaterial color="#334155" roughness={0.8} />
+      </mesh>
+    </group>
+  </group>
+);
+
+const ProceduralSmartWatch = () => (
+  <group scale={1.2}>
+    <mesh>
+      <boxGeometry args={[0.9, 1.1, 0.25]} />
+      <meshStandardMaterial color="#020617" metalness={0.95} roughness={0.1} />
+    </mesh>
+    <mesh position={[0, 0, 0.13]}>
+      <planeGeometry args={[0.8, 1.0]} />
+      <meshStandardMaterial color="#0f172a" metalness={0.5} roughness={0.2} />
+    </mesh>
+    <mesh position={[0, 0, 0.14]}>
+      <planeGeometry args={[0.72, 0.9]} />
+      <meshStandardMaterial color="#38bdf8" emissive="#0284c7" emissiveIntensity={1.5} />
+    </mesh>
+    <mesh position={[0.48, 0.2, 0]} rotation={[0, 0, Math.PI / 2]}>
+      <cylinderGeometry args={[0.08, 0.08, 0.1, 16]} />
+      <meshStandardMaterial color="#f97316" metalness={0.9} roughness={0.1} />
+    </mesh>
+    <mesh position={[0, 0.95, -0.05]} rotation={[-0.2, 0, 0]}>
+      <boxGeometry args={[0.7, 0.8, 0.12]} />
+      <meshStandardMaterial color="#1e293b" roughness={0.6} />
+    </mesh>
+    <mesh position={[0, -0.95, -0.05]} rotation={[0.2, 0, 0]}>
+      <boxGeometry args={[0.7, 0.8, 0.12]} />
+      <meshStandardMaterial color="#1e293b" roughness={0.6} />
+    </mesh>
+  </group>
+);
+
+const ProceduralCyberGem = () => (
+  <group scale={1.2}>
+    <mesh>
+      <octahedronGeometry args={[0.85, 0]} />
+      <meshStandardMaterial color="#f97316" metalness={0.4} roughness={0.1} emissive="#ea580c" emissiveIntensity={0.8} transparent opacity={0.9} />
+    </mesh>
+    <mesh rotation={[Math.PI / 3, 0, 0]}>
+      <torusGeometry args={[1.2, 0.03, 16, 64]} />
+      <meshStandardMaterial color="#fb923c" emissive="#f97316" emissiveIntensity={2} />
+    </mesh>
+    <mesh>
+      <sphereGeometry args={[0.3, 16, 16]} />
+      <meshStandardMaterial color="#ffffff" emissive="#ffffff" emissiveIntensity={3} />
+    </mesh>
+  </group>
+);
+
 const Loader = ({ placeholderSrc }) => {
   const { progress, active } = useProgress();
   if (!active && placeholderSrc) return null;
   return (
     <Html center>
-      {placeholderSrc ? (
-        <img src={placeholderSrc} width={128} height={128} style={{ filter: 'blur(8px)', borderRadius: 8 }} />
-      ) : (
-        <div style={{ color: '#f97316', fontWeight: 700, fontSize: 13, background: 'rgba(0,0,0,0.75)', padding: '6px 12px', borderRadius: 20, whiteSpace: 'nowrap', border: '1px solid rgba(249,115,22,0.3)' }}>
-          ⚡ Loading 3D {Math.round(progress)}%
-        </div>
-      )}
+      <div style={{ color: '#f97316', fontWeight: 700, fontSize: 13, background: 'rgba(0,0,0,0.75)', padding: '6px 12px', borderRadius: 20, whiteSpace: 'nowrap', border: '1px solid rgba(249,115,22,0.3)' }}>
+        ⚡ Loading 3D {Math.round(progress)}%
+      </div>
     </Html>
   );
 };
@@ -46,8 +126,15 @@ const DesktopControls = ({ pivot, min, max, zoomEnabled }) => {
   );
 };
 
+const GLTFContent = ({ url }) => {
+  const gltfData = useGLTF(url);
+  const content = useMemo(() => (gltfData?.scene ? gltfData.scene.clone() : null), [gltfData]);
+  if (!content) return null;
+  return <primitive object={content} />;
+};
+
 const ModelInner = ({
-  url, xOff, yOff, pivot, initYaw, initPitch, minZoom, maxZoom,
+  url, modelType, xOff, yOff, pivot, initYaw, initPitch, minZoom, maxZoom,
   enableMouseParallax, enableManualRotation, enableHoverRotation, enableManualZoom,
   autoFrame, fadeIn, autoRotate, autoRotateSpeed, onLoaded
 }) => {
@@ -60,48 +147,21 @@ const ModelInner = ({
   const tHov = useRef({ x: 0, y: 0 });
   const cHov = useRef({ x: 0, y: 0 });
 
-  const gltfData = useGLTF(url);
-  const content = useMemo(() => gltfData?.scene ? gltfData.scene.clone() : null, [gltfData]);
-
   const pivotW = useRef(new Vector3());
+
   useLayoutEffect(() => {
-    if (!content || !inner.current || !outer.current) return;
+    if (!inner.current || !outer.current) return;
     const g = inner.current;
     g.updateWorldMatrix(true, true);
     const sphere = new Box3().setFromObject(g).getBoundingSphere(new Sphere());
     const s = sphere.radius > 0 ? 1 / (sphere.radius * 2) : 1;
     g.position.set(-sphere.center.x, -sphere.center.y, -sphere.center.z);
     g.scale.setScalar(s);
-    g.traverse(o => {
-      if (o.isMesh) {
-        o.castShadow = true;
-        o.receiveShadow = true;
-        if (fadeIn && o.material) { o.material.transparent = true; o.material.opacity = 0; }
-      }
-    });
     g.getWorldPosition(pivotW.current);
     pivot.copy(pivotW.current);
     outer.current.rotation.set(initPitch, initYaw, 0);
-    if (autoFrame && camera.isPerspectiveCamera) {
-      const persp = camera;
-      const fitR = sphere.radius * s;
-      const d = (fitR * 1.2) / Math.sin((persp.fov * Math.PI) / 180 / 2);
-      persp.position.set(pivotW.current.x, pivotW.current.y, pivotW.current.z + d);
-      persp.near = Math.max(0.01, d / 10); persp.far = d * 10;
-      persp.updateProjectionMatrix();
-    }
-    if (fadeIn) {
-      let t = 0;
-      const id = setInterval(() => {
-        t += 0.05;
-        const v = Math.min(t, 1);
-        g.traverse(o => { if (o.isMesh && o.material) o.material.opacity = v; });
-        if (v === 1) { clearInterval(id); onLoaded?.(); }
-      }, 16);
-      return () => clearInterval(id);
-    } else onLoaded?.();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [content]);
+    onLoaded?.();
+  }, [modelType, url]);
 
   useEffect(() => {
     if (!enableManualRotation || isTouch) return;
@@ -179,7 +239,6 @@ const ModelInner = ({
       el.removeEventListener('pointerdown', down); window.removeEventListener('pointermove', move);
       window.removeEventListener('pointerup', up); window.removeEventListener('pointercancel', up);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gl, enableManualRotation, enableManualZoom, minZoom, maxZoom]);
 
   useEffect(() => {
@@ -211,11 +270,17 @@ const ModelInner = ({
     vel.current.x *= INERTIA; vel.current.y *= INERTIA;
   });
 
-  if (!content) return null;
   return (
     <group ref={outer}>
       <group ref={inner}>
-        <primitive object={content} />
+        {modelType === 'headphones' && <ProceduralHeadphones />}
+        {modelType === 'watch' && <ProceduralSmartWatch />}
+        {modelType === 'gem' && <ProceduralCyberGem />}
+        {!modelType && url && (
+          <Suspense fallback={<ProceduralCyberGem />}>
+            <GLTFContent url={url} />
+          </Suspense>
+        )}
       </group>
     </group>
   );
@@ -223,6 +288,7 @@ const ModelInner = ({
 
 const ModelViewer = ({
   url,
+  modelType = 'headphones',
   width = 400,
   height = 400,
   modelXOffset = 0,
@@ -310,7 +376,7 @@ const ModelViewer = ({
         <ContactShadows ref={contactRef} position={[0, -0.5, 0]} opacity={0.35} scale={10} blur={2} />
         <Suspense fallback={<Loader placeholderSrc={placeholderSrc} />}>
           <ModelInner
-            url={url} xOff={modelXOffset} yOff={modelYOffset} pivot={pivot}
+            url={url} modelType={modelType} xOff={modelXOffset} yOff={modelYOffset} pivot={pivot}
             initYaw={initYaw} initPitch={initPitch} minZoom={minZoomDistance} maxZoom={maxZoomDistance}
             enableMouseParallax={enableMouseParallax} enableManualRotation={enableManualRotation}
             enableHoverRotation={enableHoverRotation} enableManualZoom={enableManualZoom}

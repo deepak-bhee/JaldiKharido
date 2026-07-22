@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import IntroLoader from '../components/IntroLoader';
 import HeroSection from '../components/HeroSection';
 import MarqueeStrip from '../components/MarqueeStrip';
@@ -6,8 +6,9 @@ import CategoryGrid from '../components/CategoryGrid';
 import ProductCard from '../components/ProductCard';
 import FeaturesSection from '../components/FeaturesSection';
 import DecayCategorySection from '../components/DecayCategorySection';
-import ModelShowcase3D from '../components/ModelShowcase3D';
 import { apiFetch } from '../api';
+
+const ModelShowcase3D = lazy(() => import('../components/ModelShowcase3D'));
 
 const SkeletonCard = () => (
   <div className="glass border border-white/[0.07] rounded-2xl overflow-hidden">
@@ -82,7 +83,9 @@ const Home = () => {
       </section>
 
       <FeaturesSection />
-      <ModelShowcase3D />
+      <Suspense fallback={null}>
+        <ModelShowcase3D />
+      </Suspense>
       <DecayCategorySection />
     </div>
   );

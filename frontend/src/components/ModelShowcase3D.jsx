@@ -25,34 +25,34 @@ class ErrorBoundary extends Component {
 
 const SHOWCASE_MODELS = [
   {
-    name: 'Duck',
-    label: 'Toys & Collectibles',
-    url: 'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/main/2.0/Duck/glTF-Binary/Duck.glb',
+    name: 'Headphones',
+    modelType: 'headphones',
+    label: 'Audio & Electronics',
     autoRotate: true,
     autoRotateSpeed: 0.5,
-    defaultZoom: 0.6,
-    defaultRotationX: -20,
-    defaultRotationY: 15,
+    defaultZoom: 0.7,
+    defaultRotationX: -15,
+    defaultRotationY: 25,
     description: 'Drag to rotate • Scroll to zoom'
   },
   {
-    name: 'Fox',
-    label: 'Wild Life',
-    url: 'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/main/2.0/Fox/glTF-Binary/Fox.glb',
+    name: 'Smart Watch',
+    modelType: 'watch',
+    label: 'Wearable Tech',
     autoRotate: true,
     autoRotateSpeed: 0.4,
     defaultZoom: 0.7,
-    defaultRotationX: -30,
+    defaultRotationX: -20,
     defaultRotationY: 20,
     description: 'Drag to rotate • Scroll to zoom'
   },
   {
-    name: 'Toy Car',
-    label: 'Electronics',
-    url: 'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/main/2.0/ToyCar/glTF-Binary/ToyCar.glb',
+    name: 'Cyber Trophy',
+    modelType: 'gem',
+    label: 'Premium Rewards',
     autoRotate: true,
     autoRotateSpeed: 0.35,
-    defaultZoom: 0.55,
+    defaultZoom: 0.7,
     defaultRotationX: -30,
     defaultRotationY: 15,
     description: 'Drag to rotate • Scroll to zoom'
@@ -118,7 +118,8 @@ const ModelShowcase3D = () => {
                   </div>
                 }>
                   <ModelViewer
-                    key={active.url}
+                    key={active.name}
+                    modelType={active.modelType}
                     url={active.url}
                     width={400}
                     height={400}
