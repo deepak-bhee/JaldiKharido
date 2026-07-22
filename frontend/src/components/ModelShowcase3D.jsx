@@ -1,7 +1,5 @@
-import { Component, Suspense, lazy, useState } from 'react';
-
-// Lazy-load so Three.js doesn't bloat the initial bundle
-const ModelViewer = lazy(() => import('./ModelViewer'));
+import { Component, Suspense, useState } from 'react';
+import ModelViewer from './ModelViewer';
 
 // Safety net: if 3D crashes in an unsupported browser, show a clean message
 class ErrorBoundary extends Component {

@@ -1,8 +1,8 @@
 /* eslint-disable react/no-unknown-property */
 import { Suspense, useRef, useLayoutEffect, useEffect, useMemo } from 'react';
-import { Canvas, useFrame, useThree, invalidate } from '@react-three/fiber';
+import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { OrbitControls, useGLTF, useProgress, Html, ContactShadows } from '@react-three/drei';
-import { Vector3, Box3, Sphere, MathUtils, ACESFilmicToneMapping, SRGBColorSpace } from 'three';
+import { Vector3, Box3, Sphere, MathUtils } from 'three';
 
 const isTouch = typeof window !== 'undefined' && ('ontouchstart' in window || navigator.maxTouchPoints > 0);
 const deg2rad = d => (d * Math.PI) / 180;
@@ -22,8 +22,8 @@ const Loader = ({ placeholderSrc }) => {
       {placeholderSrc ? (
         <img src={placeholderSrc} width={128} height={128} style={{ filter: 'blur(8px)', borderRadius: 8 }} />
       ) : (
-        <div style={{ color: '#f97316', fontWeight: 700, fontSize: 14, background: 'rgba(0,0,0,0.7)', padding: '8px 14px', borderRadius: 8 }}>
-          {Math.round(progress)}%
+        <div style={{ color: '#f97316', fontWeight: 700, fontSize: 13, background: 'rgba(0,0,0,0.75)', padding: '6px 12px', borderRadius: 20, whiteSpace: 'nowrap', border: '1px solid rgba(249,115,22,0.3)' }}>
+          ⚡ Loading 3D {Math.round(progress)}%
         </div>
       )}
     </Html>
@@ -60,24 +60,23 @@ const ModelInner = ({
   const tHov = useRef({ x: 0, y: 0 });
   const cHov = useRef({ x: 0, y: 0 });
 
-  // Always call useGLTF at top level (rules of hooks). All models in this app are .glb/.gltf.
   const gltfData = useGLTF(url);
-  const content = useMemo(() => gltfData.scene.clone(), [gltfData.scene]);
+  const content = useMemo(() => gltfData?.scene ? gltfData.scene.clone() : null, [gltfData]);
 
   const pivotW = useRef(new Vector3());
   useLayoutEffect(() => {
-    if (!content) return;
+    if (!content || !inner.current || !outer.current) return;
     const g = inner.current;
     g.updateWorldMatrix(true, true);
     const sphere = new Box3().setFromObject(g).getBoundingSphere(new Sphere());
-    const s = 1 / (sphere.radius * 2);
+    const s = sphere.radius > 0 ? 1 / (sphere.radius * 2) : 1;
     g.position.set(-sphere.center.x, -sphere.center.y, -sphere.center.z);
     g.scale.setScalar(s);
     g.traverse(o => {
       if (o.isMesh) {
         o.castShadow = true;
         o.receiveShadow = true;
-        if (fadeIn) { o.material.transparent = true; o.material.opacity = 0; }
+        if (fadeIn && o.material) { o.material.transparent = true; o.material.opacity = 0; }
       }
     });
     g.getWorldPosition(pivotW.current);
@@ -88,7 +87,7 @@ const ModelInner = ({
       const fitR = sphere.radius * s;
       const d = (fitR * 1.2) / Math.sin((persp.fov * Math.PI) / 180 / 2);
       persp.position.set(pivotW.current.x, pivotW.current.y, pivotW.current.z + d);
-      persp.near = d / 10; persp.far = d * 10;
+      persp.near = Math.max(0.01, d / 10); persp.far = d * 10;
       persp.updateProjectionMatrix();
     }
     if (fadeIn) {
@@ -96,8 +95,7 @@ const ModelInner = ({
       const id = setInterval(() => {
         t += 0.05;
         const v = Math.min(t, 1);
-        g.traverse(o => { if (o.isMesh) o.material.opacity = v; });
-        invalidate();
+        g.traverse(o => { if (o.isMesh && o.material) o.material.opacity = v; });
         if (v === 1) { clearInterval(id); onLoaded?.(); }
       }, 16);
       return () => clearInterval(id);
@@ -108,6 +106,7 @@ const ModelInner = ({
   useEffect(() => {
     if (!enableManualRotation || isTouch) return;
     const el = gl.domElement;
+    if (!el) return;
     let drag = false; let lx = 0, ly = 0;
     const down = e => {
       if (e.pointerType !== 'mouse' && e.pointerType !== 'pen') return;
@@ -115,13 +114,12 @@ const ModelInner = ({
       window.addEventListener('pointerup', up);
     };
     const move = e => {
-      if (!drag) return;
+      if (!drag || !outer.current) return;
       const dx = e.clientX - lx; const dy = e.clientY - ly;
       lx = e.clientX; ly = e.clientY;
       outer.current.rotation.y += dx * ROTATE_SPEED;
       outer.current.rotation.x += dy * ROTATE_SPEED;
       vel.current = { x: dx * ROTATE_SPEED, y: dy * ROTATE_SPEED };
-      invalidate();
     };
     const up = () => (drag = false);
     el.addEventListener('pointerdown', down);
@@ -132,6 +130,7 @@ const ModelInner = ({
   useEffect(() => {
     if (!isTouch) return;
     const el = gl.domElement;
+    if (!el) return;
     const pts = new Map();
     let mode = 'idle'; let sx = 0, sy = 0, lx = 0, ly = 0, startDist = 0, startZ = 0;
     const down = e => {
@@ -143,7 +142,6 @@ const ModelInner = ({
         const [p1, p2] = [...pts.values()];
         startDist = Math.hypot(p1.x - p2.x, p1.y - p2.y); startZ = camera.position.z; e.preventDefault();
       }
-      invalidate();
     };
     const move = e => {
       const p = pts.get(e.pointerId); if (!p) return;
@@ -155,17 +153,17 @@ const ModelInner = ({
           else { mode = 'idle'; pts.clear(); }
         }
       }
-      if (mode === 'rotate') {
+      if (mode === 'rotate' && outer.current) {
         e.preventDefault();
         const dx = e.clientX - lx; const dy = e.clientY - ly;
         lx = e.clientX; ly = e.clientY;
         outer.current.rotation.y += dx * ROTATE_SPEED; outer.current.rotation.x += dy * ROTATE_SPEED;
-        vel.current = { x: dx * ROTATE_SPEED, y: dy * ROTATE_SPEED }; invalidate();
+        vel.current = { x: dx * ROTATE_SPEED, y: dy * ROTATE_SPEED };
       } else if (mode === 'pinch' && pts.size === 2) {
         e.preventDefault();
         const [p1, p2] = [...pts.values()];
         const d = Math.hypot(p1.x - p2.x, p1.y - p2.y); const ratio = startDist / d;
-        camera.position.z = MathUtils.clamp(startZ * ratio, minZoom, maxZoom); invalidate();
+        camera.position.z = MathUtils.clamp(startZ * ratio, minZoom, maxZoom);
       }
     };
     const up = e => {
@@ -192,14 +190,13 @@ const ModelInner = ({
       const ny = (e.clientY / window.innerHeight) * 2 - 1;
       if (enableMouseParallax) tPar.current = { x: -nx * PARALLAX_MAG, y: -ny * PARALLAX_MAG };
       if (enableHoverRotation) tHov.current = { x: ny * HOVER_MAG, y: nx * HOVER_MAG };
-      invalidate();
     };
     window.addEventListener('pointermove', mm);
     return () => window.removeEventListener('pointermove', mm);
   }, [enableMouseParallax, enableHoverRotation]);
 
   useFrame((_, dt) => {
-    let need = false;
+    if (!outer.current) return;
     cPar.current.x += (tPar.current.x - cPar.current.x) * PARALLAX_EASE;
     cPar.current.y += (tPar.current.y - cPar.current.y) * PARALLAX_EASE;
     const phx = cHov.current.x, phy = cHov.current.y;
@@ -209,17 +206,9 @@ const ModelInner = ({
     ndc.x += xOff + cPar.current.x; ndc.y += yOff + cPar.current.y;
     outer.current.position.copy(ndc.unproject(camera));
     outer.current.rotation.x += cHov.current.x - phx; outer.current.rotation.y += cHov.current.y - phy;
-    if (autoRotate) { outer.current.rotation.y += autoRotateSpeed * dt; need = true; }
+    if (autoRotate) outer.current.rotation.y += autoRotateSpeed * dt;
     outer.current.rotation.y += vel.current.x; outer.current.rotation.x += vel.current.y;
     vel.current.x *= INERTIA; vel.current.y *= INERTIA;
-    if (Math.abs(vel.current.x) > 1e-4 || Math.abs(vel.current.y) > 1e-4) need = true;
-    if (
-      Math.abs(cPar.current.x - tPar.current.x) > 1e-4 ||
-      Math.abs(cPar.current.y - tPar.current.y) > 1e-4 ||
-      Math.abs(cHov.current.x - tHov.current.x) > 1e-4 ||
-      Math.abs(cHov.current.y - tHov.current.y) > 1e-4
-    ) need = true;
-    if (need) invalidate();
   });
 
   if (!content) return null;
@@ -285,7 +274,6 @@ const ModelViewer = ({
     g.shadowMap.enabled = true;
     tmp.forEach(({ l, cast }) => (l.castShadow = cast));
     if (contactRef.current) contactRef.current.visible = true;
-    invalidate();
   };
 
   return (
@@ -304,12 +292,12 @@ const ModelViewer = ({
       )}
       <Canvas
         shadows
-        frameloop="demand"
-        gl={{ preserveDrawingBuffer: true }}
+        frameloop="always"
+        gl={{ preserveDrawingBuffer: true, powerPreference: 'high-performance' }}
         onCreated={({ gl, scene, camera }) => {
-          rendererRef.current = gl; sceneRef.current = scene; cameraRef.current = camera;
-          if (ACESFilmicToneMapping) gl.toneMapping = ACESFilmicToneMapping;
-          if (SRGBColorSpace) gl.outputColorSpace = SRGBColorSpace;
+          rendererRef.current = gl;
+          sceneRef.current = scene;
+          cameraRef.current = camera;
         }}
         camera={{ fov: 50, position: [0, 0, camZ], near: 0.01, far: 100 }}
         style={{ touchAction: 'pan-y pinch-zoom' }}
