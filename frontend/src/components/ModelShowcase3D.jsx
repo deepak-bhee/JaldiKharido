@@ -1,7 +1,27 @@
-import { Suspense, lazy, useState } from 'react';
+import { Component, Suspense, lazy, useState } from 'react';
 
 // Lazy-load so Three.js doesn't bloat the initial bundle
 const ModelViewer = lazy(() => import('./ModelViewer'));
+
+// Safety net: if 3D crashes, show a fallback instead of blanking the page
+class ErrorBoundary extends Component {
+  constructor(props) { super(props); this.state = { error: null }; }
+  static getDerivedStateFromError(error) { return { error }; }
+  render() {
+    if (this.state.error) {
+      return (
+        <div className="flex items-center justify-center rounded-3xl glass border border-white/10 text-center p-12"
+          style={{ minHeight: 300 }}>
+          <div>
+            <div className="text-4xl mb-3">🌐</div>
+            <div className="text-slate-400 text-sm">3D viewer unavailable in this browser</div>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 const SHOWCASE_MODELS = [
   {
@@ -90,6 +110,7 @@ const ModelShowcase3D = () => {
             <div className="absolute inset-0 rounded-3xl bg-brand/10 blur-xl" />
             <div className="relative glass border border-white/10 rounded-3xl overflow-hidden"
               style={{ boxShadow: '0 0 60px rgba(249,115,22,0.12), 0 25px 50px rgba(0,0,0,0.5)' }}>
+              <ErrorBoundary>
               <Suspense fallback={
                 <div className="flex items-center justify-center bg-black/30"
                   style={{ width: 400, height: 400 }}>
@@ -122,6 +143,7 @@ const ModelShowcase3D = () => {
                   rimLightIntensity={1.0}
                 />
               </Suspense>
+              </ErrorBoundary>
             </div>
             {/* Hint label */}
             <div className="absolute bottom-3 left-1/2 -translate-x-1/2 px-3 py-1.5 bg-black/60 backdrop-blur rounded-full
