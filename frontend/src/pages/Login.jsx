@@ -8,6 +8,7 @@ const Login = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [formData, setFormData] = useState({ name: '', email: '', password: '' });
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const { login } = useAuth();
   const { showToast } = useToast();
@@ -154,14 +155,22 @@ const Login = () => {
               <label className="block text-xs font-medium text-slate-400 mb-1.5 ml-1">Password</label>
               <div className="relative">
                 <input
-                  type="password"
+                  type={showPassword ? 'text' : 'password'}
                   required
                   value={formData.password}
                   onChange={e => setFormData(f => ({ ...f, password: e.target.value }))}
-                  className="w-full bg-surface-secondary border border-white/10 rounded-xl px-4 py-3 pl-10 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-brand/50 transition-colors"
+                  className="w-full bg-surface-secondary border border-white/10 rounded-xl px-4 py-3 pl-10 pr-10 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-brand/50 transition-colors"
                   placeholder="••••••••"
                 />
                 <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500">🔒</span>
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(s => !s)}
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white p-1 transition-colors text-xs font-semibold focus:outline-none"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? '👁️' : '🙈'}
+                </button>
               </div>
             </div>
 
